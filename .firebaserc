@@ -1,0 +1,8 @@
+{
+  "projects": {
+    "default": "pakfittrack",
+    "hosting": "pak-fit-track-web"
+  },
+  "targets": {},
+  "etags": {}
+}

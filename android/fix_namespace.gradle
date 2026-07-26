@@ -1,0 +1,19 @@
+subprojects { subproject ->
+    def setNamespace = {
+        if (subproject.hasProperty('android')) {
+            subproject.android {
+                if (namespace == null) {
+                    namespace subproject.group
+                }
+            }
+        }
+    }
+
+    if (subproject.state.executed) {
+        setNamespace()
+    } else {
+        subproject.afterEvaluate {
+            setNamespace()
+        }
+    }
+}

@@ -1,0 +1,30 @@
+Pak Fit Track — Privacy Policy
+Last updated: May 2026
+
+INFORMATION WE COLLECT
+• Account: email address (Firebase Authentication)
+• Profile: name, age, gender, height, weight, goals, diet preferences
+• Health & fitness logs: food intake, weight, body measurements, workouts, water intake
+• Optional: step count (only if you grant Health Connect / activity permission)
+• Analytics (optional, OFF by default): enable in Profile → Privacy & data. Events: app opens, onboarding, meal type when logging food
+• Local device ID: random UUID stored on device for offline sync queue (not used for ads)
+
+HOW WE USE DATA
+To provide nutrition and fitness tracking, sync data when signed in, and improve the app.
+
+STORAGE
+Data is stored on your device (Isar database). When signed in, profile and logs sync to Google Firebase Firestore under your account.
+
+SHARING
+We do not sell personal data. Google Firebase processes data as our infrastructure provider.
+
+YOUR CHOICES
+• Disable analytics: Profile → Privacy & data
+• Delete account: Profile → Delete account (removes Firebase Auth, Firestore data, and local logs on this device)
+• Guest mode: data stays on device until you delete local data or uninstall
+
+NOT COLLECTED
+Location, contacts, photos, SMS, crash reports, push notification tokens, payment info, advertising ID.
+
+CONTACT
+support@pakfittrack.com
