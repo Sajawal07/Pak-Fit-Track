@@ -3,129 +3,97 @@
 This file tracks every manual action required before uploading to Google Play.
 Complete each item **in order**.
 
+Contact email: **Sajawal0005@gmail.com**
+
 ---
 
 ## ✅ AUTOMATED (Already Done by Agent)
 
-- [x] `AndroidManifest.xml` — `firebase_analytics_collection_enabled = false`
-- [x] `AndroidManifest.xml` — `firebase_crashlytics_collection_enabled = false`
-- [x] `Info.plist` — `FIREBASE_ANALYTICS_COLLECTION_ENABLED = false`
-- [x] `Info.plist` — `FirebaseCrashlyticsCollectionEnabled = false`
-- [x] `main.dart` — Analytics enabled only AFTER user prefs loaded
-- [x] `main.dart` — Firebase App Check (PlayIntegrity) initialized
-- [x] `google-services.json` — updated for `com.pakfittrack.app`
-- [x] `firebase.json` — Firestore rules + Hosting configured
-- [x] `firestore.rules` — deployed to production
-- [x] `public/` — Privacy Policy + Terms of Service deployed to `pakfittrack.web.app`
-- [x] `scripts/print_sha.ps1` — SHA extractor script created
+- [x] Upload keystore created + backed up (`D:\2026\PakFitTrack-KEYSTORE-BACKUP` + Desktop copy)
+- [x] Release signing wired in `android/app/build.gradle.kts`
+- [x] `AndroidManifest.xml` — analytics/crashlytics off by default
+- [x] Privacy Policy + Terms live on Firebase Hosting
+- [x] Support email set to `Sajawal0005@gmail.com` in app + legal pages
+- [x] Package id `com.pakfittrack.app`
+- [x] GitHub repo: https://github.com/Sajawal07/Pak-Fit-Track
+
+---
+
+## Live legal links (paste into Play Console)
+
+| Page | URL |
+|------|-----|
+| Privacy Policy | https://pak-fit-track-web.web.app/privacy-policy.html |
+| Terms of Service | https://pak-fit-track-web.web.app/terms-of-service.html |
+| Home | https://pak-fit-track-web.web.app/ |
 
 ---
 
 ## 🔴 STEP 1 — Add SHA-1 Fingerprints to Firebase (CRITICAL)
 
-**Where:** Firebase Console → Project Settings → `com.pakfittrack.app` → SHA certificate fingerprints
+**Where:** Firebase Console → Project **pakfittrack** → Project Settings → Android app `com.pakfittrack.app` → SHA certificate fingerprints
 
-Add these **3 keys** (in this order):
-
-### A. Debug SHA-1 (add NOW — enables local Google Sign-In)
+### A. Debug SHA-1
 ```
 2F:A8:5B:D3:EE:38:FD:95:85:E7:8B:CB:7B:CB:9D:33:0A:EC:46:02
 ```
 
-### B. Release SHA-1 (add BEFORE building release AAB)
-Run this after creating your `.jks` release keystore:
-```powershell
-.\scripts\print_sha.ps1
+### B. Upload / Release SHA-1 (add BEFORE Play upload)
 ```
-Or manually:
+51:6C:D1:D1:51:7B:24:0F:E6:9E:19:81:35:DC:CF:B5:66:87:D2:91
 ```
-keytool -list -v -keystore android\app\YOUR_KEY.jks -alias YOUR_ALIAS
+SHA-256:
+```
+76:B1:A9:A3:00:52:A3:DB:DD:0E:0C:03:85:87:0B:C3:4E:FA:6C:44:F2:4C:3F:27:78:79:B0:B8:40:A7:4F:1A
 ```
 
-### C. Play App Signing SHA-1 (add AFTER first internal track upload)
-1. Upload `.aab` to Play Console → Internal Testing track
-2. Go to: **Release → Setup → App Integrity → App Signing**
-3. Copy the `SHA-1 certificate fingerprint`
-4. Paste it into Firebase under the same Android app
+### C. Play App Signing SHA-1 (add AFTER first AAB upload)
+Play Console → App signing → copy **App signing key certificate** SHA-1 → paste into Firebase.
+
+Full guide: `docs/SHA_FINGERPRINTS.md`
 
 ---
 
 ## 🔴 STEP 2 — Install "Delete User Data" Firebase Extension
 
-**Where:** Firebase Console → Extensions → Search "Delete User Data"
-
-**Why:** Client-side deletion can silently fail if user loses connectivity.
-This extension runs on Google's backend and guarantees atomic wipes.
-
-**Configuration:**
-- Cloud Firestore path: `users/{UID}`
-- Enable subcollection deletion: ✅ YES
+Firebase Console → Extensions → "Delete User Data"
+- Firestore path: `users/{UID}`
+- Subcollections: YES
 - Trigger: Auth user deletion
 
 ---
 
-## 🔴 STEP 3 — Enable App Check Enforcement
+## 🔴 STEP 3 — Enable App Check Enforcement (after internal test works)
 
-**Order matters:** Do this ONLY AFTER internal testing is confirmed working.
-Enforcing too early will lock out development builds.
-
-1. Go to: Firebase Console → App Check
-2. Register your Android app (`com.pakfittrack.app`) → Provider: **Play Integrity**
-3. Once internal testing passes, click **Enforce** next to **Cloud Firestore**
-
-> ⚠️ Do NOT enforce App Check before your internal test track confirms
-> Google Sign-In is working with all 3 SHA-1s registered.
+Do NOT enforce until Internal Testing Google Sign-In works with all SHA-1s.
 
 ---
 
-## 🔴 STEP 4 — Google Play Data Safety Declaration
+## 🔴 STEP 4 — Google Play Data Safety
 
-**Where:** Play Console → Your App → Policy → Data Safety
-
-Fill in exactly as follows:
-
-| Data Type | Collected? | Shared? | Required? | Purpose |
-|---|---|---|---|---|
-| Name | Yes | No | No | Account management |
-| Email address | Yes | No | Yes | Authentication |
-| User IDs | Yes | No | Yes | Authentication |
-| App interactions | Yes | No | No | Analytics (optional) |
-| Crash logs | Yes | No | No | App performance (optional) |
-| Device identifiers | Yes | No | No | App performance (optional) |
-
-**Critical wording for Analytics row:**
-- "User can choose whether this data is collected" → ✅ YES
-- "Data is encrypted in transit" → ✅ YES
-- "Users can request deletion" → ✅ YES (account delete wipes all data)
+See `docs/DATA_SAFETY_PLAY_CONSOLE.md`
 
 ---
 
-## 🟡 STEP 5 — Internal Testing Track (Before Production)
+## 🟡 STEP 5 — Build & Internal Testing
 
-1. Build signed AAB: `flutter build appbundle --release`
-2. Upload to Play Console → Internal Testing
-3. Install on a REAL device (not emulator)
-4. Verify these flows work end-to-end:
-   - [ ] Google Sign-In succeeds
-   - [ ] Analytics toggle works (off by default if first launch)
-   - [ ] Create 20+ food logs, weight logs, activity logs
-   - [ ] Delete account
-   - [ ] Wait 5 minutes
-   - [ ] Check Firestore Console: `users/{uid}` must be completely empty
-   - [ ] Confirm Google account is gone from Firebase Auth console
+```powershell
+flutter build appbundle --release
+```
+
+Upload `build/app/outputs/bundle/release/app-release.aab` to **Internal testing** first.
 
 ---
 
-## 🟢 STEP 6 — Production Upload
+## 🟢 STEP 6 — Production
 
-Only after ALL internal tests pass:
-1. Add Play App Signing SHA-1 to Firebase (from Step 1C)
-2. Enable App Check Enforcement on Firestore (from Step 3)
-3. Submit for Google Play review
+Only after internal tests pass → submit for review.
 
 ---
 
 ## Links
-- Firebase Console: https://console.firebase.google.com/project/pakfittrack
-- Privacy Policy: https://pakfittrack.web.app/privacy-policy.html
-- Terms of Service: https://pakfittrack.web.app/terms-of-service.html
+- GitHub: https://github.com/Sajawal07/Pak-Fit-Track
+- Firebase app project: https://console.firebase.google.com/project/pakfittrack
+- Privacy: https://pak-fit-track-web.web.app/privacy-policy.html
+- Terms: https://pak-fit-track-web.web.app/terms-of-service.html
+- Contact: Sajawal0005@gmail.com
