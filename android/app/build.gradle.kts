@@ -62,6 +62,17 @@ android {
             }
         }
     }
+
+    packaging {
+        jniLibs {
+            // Google Play 16 KB page-size requirement: the prebuilt libisar.so
+            // shipped by isar_flutter_libs (3.1.0+1, 2023) is 4 KB-aligned and
+            // fails Play's ELF check. We ship a re-aligned copy (same code,
+            // only file padding + p_align updated — see tool/pad16k.py) from
+            // src/main/jniLibs; pickFirsts makes it win over the plugin AAR.
+            pickFirsts.add("lib/**/libisar.so")
+        }
+    }
 }
 
 flutter {

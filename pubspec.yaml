@@ -2,7 +2,7 @@ name: pakfittrack
 description: "Pak Fit Track - Pakistan-focused intelligent nutrition and weight-loss tracking"
 publish_to: 'none'
 
-version: 1.0.4+7
+version: 1.0.5+8
 
 environment:
   sdk: ^3.7.2
