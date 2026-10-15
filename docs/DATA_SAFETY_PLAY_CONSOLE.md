@@ -49,7 +49,7 @@ The app implements an account deletion process that requires manual admin action
    - Deleting (or retiring as an audit record) the `deletionRequests/{uid}` record
 4. **Local data**: Cleared on the device where the in-app request was submitted. Signing out alone does NOT clear local data.
 
-**Important**: Deletion is NOT automatic. After a deletion request is submitted, an admin must manually process it. The privacy policy and delete-account page describe this as a request-based manual process; a processing timeframe is published only after the owner confirms it (a placeholder is currently in the policy drafts).
+**Important**: Deletion is NOT automatic. After a deletion request is submitted, an admin must manually process it. The privacy policy and delete-account page describe this as a request-based manual process; the published processing target is **30 days** from receipt (confirmed by the owner, October 2026).
 
 **Other devices**: After deletion, signed-in sessions on other phones cannot sync (auth user gone). Users should delete app data on those devices or reinstall.
 
@@ -79,25 +79,40 @@ The app implements an account deletion process that requires manual admin action
 Play Console URL must match `AppLegal.privacyPolicyUrl` in app:
 `https://pak-fit-track-web.web.app/privacy-policy.html`
 
-> **Hosting caution:** the Firebase project `pakfittrack` has more than one
-> hosting site. As of October 2026, `pak-fit-track-web.web.app` (the
-> Play-referenced site) was serving an **older** deployment than the
-> project's default domain `pakfittrack.web.app`. After editing anything in
-> `public/`, deploy to **the site the Play Console links to** and verify
-> both URLs afterwards:
+> **Hosting topology (verified October 2026):** the website lives in a
+> **separate Firebase project, `pak-fit-track-web`** (project
+> `#276284533069`), whose default hosting site serves
+> `https://pak-fit-track-web.web.app` — the Play-referenced URL. The app's
+> own project is `pakfittrack` (Auth/Firestore/Analytics); its default
+> domain `pakfittrack.web.app` serves an **older** copy of the policy and
+> is not the Play URL. Firebase CLI v15 has **no `deploy --site` option** —
+> select the project explicitly:
 >
 > ```bash
-> firebase deploy --only hosting --site pak-fit-track-web   # Play-referenced site
-> firebase deploy --only hosting                            # default site (pakfittrack.web.app)
+> firebase deploy --only hosting -P pak-fit-track-web   # → pak-fit-track-web.web.app (canonical)
+> # equivalent, using the alias already defined in .firebaserc:
+> firebase deploy --only hosting --project hosting
 > ```
+>
+> Run this with a Google account that has access to project
+> `pak-fit-track-web`. The `pakfittrack` project needs the owner's account
+> and is only relevant for Firestore-rules deploys, not content updates.
+> If you change the default project (`firebase use ...`), remember that a
+> plain `firebase deploy --only hosting` will then publish to whichever
+> project is active — always pass `-P pak-fit-track-web` for website deploys.
 
 Deploy hosted copy of the policy **and** the account-deletion page:
 
 ```bash
-firebase deploy --only hosting
+firebase deploy --only hosting -P pak-fit-track-web
 ```
 
-There is no CI/CD for hosting — deployment is always manual.
+After deploying, verify all three pages: `privacy-policy.html` (shows the
+current "Last updated" date), `delete-account.html` (HTTP 200, not 404),
+and `terms-of-service.html`.
+
+There is no CI/CD for hosting — deployment is always manual. Last deployed
+and verified live: **October 15, 2026** (timeframe finalized at 30 days).
 
 ## Privacy contact
 

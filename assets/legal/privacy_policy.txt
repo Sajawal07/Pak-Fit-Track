@@ -73,7 +73,7 @@ An administrator manually reviews and processes each request. Once processed:
 - Your cloud profile and your food, weight, and activity logs are deleted.
 - The deletion request record is removed.
 
-Requests are processed manually, in the order received. Our target is to complete valid requests within [PLACEHOLDER — APP OWNER TO CONFIRM] of receipt.
+Requests are processed manually, in the order received. We aim to complete valid requests within 30 days of receipt.
 
 If we cannot verify that a request comes from the account owner, we will reply to the registered email address asking for confirmation and the request stays pending until ownership is confirmed. To follow up at any time, email Sajawal0005@gmail.com from your registered email address.
 

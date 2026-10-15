@@ -28,6 +28,10 @@ The flow is:
 4. **You (the administrator)** manually delete the cloud data and the
    Firebase Authentication account using the steps below.
 
+> **SLA:** the privacy policy publishes a target of completing valid
+> requests within **30 days** of receipt (owner-confirmed, October 2026).
+> Process requests promptly and in the order received.
+
 Email-based requests (from users who cannot access the app) skip step 2–3
 and are processed with the same backend steps; see §2.1.
 

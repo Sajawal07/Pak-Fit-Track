@@ -401,7 +401,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         content: const Text(
           'This submits a deletion request — it does not delete your account immediately.\n\n'
           'An administrator will manually review and process your request. '
-          'Until the request is processed, your account and cloud data remain stored.\n\n'
+          'Until the request is processed, your account and cloud data remain stored. '
+          'We aim to process valid requests within 30 days of receipt.\n\n'
           'Once your request is recorded, the fitness data stored on this device will be cleared and you will be signed out.\n\n'
           'To follow up at any time, email Sajawal0005@gmail.com from your registered email address.',
           style: TextStyle(color: AppColors.textSecondary),
@@ -555,7 +556,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         ),
         content: const Text(
           'Your account deletion request has been recorded.\n\n'
-          'Your account and cloud data have NOT been deleted yet — an administrator will now process your request manually.\n\n'
+          'Your account and cloud data have NOT been deleted yet — an administrator will now process your request manually (we aim to complete valid requests within 30 days).\n\n'
           'The fitness data stored on this device has been cleared. Tap OK to sign out.\n\n'
           'To follow up, email Sajawal0005@gmail.com from your registered email address.',
           style: TextStyle(color: AppColors.textSecondary),
