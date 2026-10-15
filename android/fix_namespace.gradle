@@ -1,19 +1,22 @@
 subprojects { subproject ->
-    def setNamespace = {
+    def configureAndroid = {
         if (subproject.hasProperty('android')) {
             subproject.android {
                 if (namespace == null) {
                     namespace subproject.group
+                }
+                if (subproject.name != "app") {
+                    compileSdkVersion 35
                 }
             }
         }
     }
 
     if (subproject.state.executed) {
-        setNamespace()
+        configureAndroid()
     } else {
         subproject.afterEvaluate {
-            setNamespace()
+            configureAndroid()
         }
     }
 }

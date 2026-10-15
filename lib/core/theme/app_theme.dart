@@ -11,12 +11,24 @@ class AppTheme {
       useMaterial3: true,
       colorScheme: const ColorScheme.dark(
         primary: AppColors.primary,
-        secondary: AppColors.accent,
-        surface: AppColors.surface,
-        error: AppColors.error,
         onPrimary: AppColors.textOnPrimary,
-        onSecondary: AppColors.textOnPrimary,
+        primaryContainer: Color(0xFF166534),
+        onPrimaryContainer: Color(0xFFDCFCE7),
+        secondary: AppColors.accent,
+        onSecondary: Colors.black,
+        secondaryContainer: Color(0xFF78350F),
+        onSecondaryContainer: Color(0xFFFEF3C7),
+        surface: AppColors.surface,
         onSurface: AppColors.textPrimary,
+        surfaceContainerLowest: Color(0xFF070A12),
+        surfaceContainerLow: AppColors.background,
+        surfaceContainer: AppColors.cardBg,
+        surfaceContainerHigh: AppColors.surfaceLight,
+        surfaceContainerHighest: Color(0xFF26354A),
+        outline: AppColors.textMuted,
+        outlineVariant: AppColors.surfaceLight,
+        error: AppColors.error,
+        onError: Colors.white,
       ),
       scaffoldBackgroundColor: AppColors.background,
       textTheme: GoogleFonts.outfitTextTheme(
@@ -127,6 +139,59 @@ class AppTheme {
           ),
         ),
       ),
+      checkboxTheme: CheckboxThemeData(
+        fillColor: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) {
+            return AppColors.primary;
+          }
+          return Colors.transparent;
+        }),
+        checkColor: WidgetStateProperty.all(Colors.white),
+        side: const BorderSide(color: AppColors.textSecondary, width: 1.5),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+      ),
+      dialogTheme: DialogTheme(
+        backgroundColor: AppColors.surface,
+        surfaceTintColor: Colors.transparent,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        titleTextStyle: GoogleFonts.outfit(
+          color: AppColors.textPrimary,
+          fontSize: 18,
+          fontWeight: FontWeight.w700,
+        ),
+        contentTextStyle: GoogleFonts.outfit(
+          color: AppColors.textSecondary,
+          fontSize: 14,
+        ),
+      ),
+      snackBarTheme: SnackBarThemeData(
+        backgroundColor: AppColors.surfaceLight,
+        contentTextStyle: GoogleFonts.outfit(
+          color: AppColors.textPrimary,
+          fontSize: 14,
+        ),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ),
+      segmentedButtonTheme: SegmentedButtonThemeData(
+        style: ButtonStyle(
+          backgroundColor: WidgetStateProperty.resolveWith((states) {
+            if (states.contains(WidgetState.selected)) {
+              return AppColors.primary.withValues(alpha: 0.2);
+            }
+            return AppColors.surfaceLight;
+          }),
+          foregroundColor: WidgetStateProperty.resolveWith((states) {
+            if (states.contains(WidgetState.selected)) {
+              return AppColors.primary;
+            }
+            return AppColors.textSecondary;
+          }),
+          side: WidgetStateProperty.all(
+            const BorderSide(color: AppColors.surfaceLight),
+          ),
+        ),
+      ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: AppColors.surfaceLight,
@@ -171,7 +236,7 @@ class AppTheme {
       ),
       chipTheme: ChipThemeData(
         backgroundColor: AppColors.surfaceLight,
-        selectedColor: AppColors.primary.withOpacity(0.2),
+        selectedColor: AppColors.primary.withValues(alpha: 0.2),
         labelStyle: GoogleFonts.outfit(
           color: AppColors.textSecondary,
           fontSize: 13,

@@ -47,6 +47,10 @@ SHA-256:
 76:B1:A9:A3:00:52:A3:DB:DD:0E:0C:03:85:87:0B:C3:4E:FA:6C:44:F2:4C:3F:27:78:79:B0:B8:40:A7:4F:1A
 ```
 
+> **Google Sign-In ApiException:10 fix:** Both Debug + Upload SHA-1 must be on
+> Firebase Android app **`com.pakfittrack.app`** (not the old `com.example.pakfittrack`).
+> After adding, download a fresh `google-services.json` into `android/app/`.
+
 ### C. Play App Signing SHA-1 (add AFTER first AAB upload)
 Play Console → App signing → copy **App signing key certificate** SHA-1 → paste into Firebase.
 
@@ -54,12 +58,16 @@ Full guide: `docs/SHA_FINGERPRINTS.md`
 
 ---
 
-## 🔴 STEP 2 — Install "Delete User Data" Firebase Extension
+## 🔴 STEP 2 — Admin Account Deletion Process
 
-Firebase Console → Extensions → "Delete User Data"
-- Firestore path: `users/{UID}`
-- Subcollections: YES
-- Trigger: Auth user deletion
+When a user requests account deletion, the app creates a `deletionRequests/{uid}` document with `status: "pending"`, clears the user's local device data, and signs the user out. An admin must then manually process the cloud deletion:
+
+1. Review the request in Firebase Console → Firestore → `deletionRequests`
+2. Delete user Firestore data: `firebase firestore:delete --recursive users/{uid}`
+3. Delete the Firebase Auth user via Firebase Console → Authentication → Users
+4. Delete the request record: `firebase firestore:delete --recursive deletionRequests/{uid}`
+
+Full admin guide: see `docs/ACCOUNT_DELETION.md`
 
 ---
 

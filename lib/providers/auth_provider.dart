@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -15,81 +16,77 @@ final firebaseAuthProvider = Provider<FirebaseAuth?>((ref) {
   }
 });
 
-// ── Auth state: emits null (guest) if Firebase not configured ─────────────
+// ── Auth state stream ─────────────────────────────────────────────────────
 final authStateProvider = StreamProvider<User?>((ref) {
   final auth = ref.watch(firebaseAuthProvider);
   if (auth == null) return Stream.value(null);
-  // userChanges() also emits on user.reload() / token refresh,
-  // which is required for emailVerified updates to propagate reliably.
-  return auth.userChanges().timeout(
-    const Duration(seconds: 8),
-    onTimeout: (sink) {
-      // If Firebase takes > 8 seconds, emit null to unblock the router.
-      // This allows the app to fallback to Guest/Offline mode instead of being permanently stuck.
-      // The stream remains open, so if Firebase resolves later, the router will redirect automatically.
-      sink.add(null);
-    },
-  );
+  // Do NOT use Stream.timeout here — timeout fires on quiet gaps between
+  // emissions and falsely signs the user out every ~8s (login-screen loop).
+  return auth.userChanges();
 });
 
-/// Resolves uid from Firebase persisted session or explicit guest id.
-/// Returns empty string when no session exists (never a synthetic `"guest"`).
+/// Firebase uid only. Empty string when signed out (no guest sessions).
 String resolveActiveUid({SharedPreferences? prefs, FirebaseAuth? auth}) {
   final firebaseUser = auth?.currentUser;
   if (firebaseUser != null) return firebaseUser.uid;
-
-  final guestUid = prefs?.getString(PrefsKeys.guestUid);
-  if (guestUid != null && guestUid.isNotEmpty) return guestUid;
   return '';
 }
 
-/// True when a Firebase user or an explicit guest profile session exists.
+/// True when a Firebase user is signed in.
 final sessionActiveProvider = Provider<bool>((ref) {
-  final authUser = ref.watch(authStateProvider).value;
-  if (authUser != null) return true;
-  final guestUid =
-      ref.watch(sharedPreferencesProvider).getString(PrefsKeys.guestUid);
-  return guestUid != null && guestUid.isNotEmpty;
+  return ref.watch(authStateProvider).valueOrNull != null;
 });
 
-/// Set to true once Firebase (or offline mode) has emitted the first auth event.
+/// Set to true once Firebase has emitted the first auth event.
 final authBootstrapCompleteProvider = Provider<bool>((ref) {
   final authState = ref.watch(authStateProvider);
   return !authState.isLoading;
 });
 
-// ── Current UID (Firebase user uid OR explicit guest id; empty when signed out) ─
 final currentUidProvider = Provider<String>((ref) {
   final auth = ref.watch(firebaseAuthProvider);
-  final prefs = ref.watch(sharedPreferencesProvider);
-  return resolveActiveUid(prefs: prefs, auth: auth);
+  return resolveActiveUid(auth: auth);
 });
 
 // ── Auth Actions ─────────────────────────────────────────────────────────
 class AuthNotifier extends StateNotifier<AsyncValue<User?>> {
   final FirebaseAuth? _auth;
   final Ref _ref;
-  final GoogleSignIn _googleSignIn = GoogleSignIn();
+  final GoogleSignIn _googleSignIn = GoogleSignIn(
+    serverClientId:
+        '468407198380-0k4e3ekhdmjdouthf8sljg5mdfgdrr9u.apps.googleusercontent.com',
+  );
 
   AuthNotifier(this._auth, this._ref) : super(const AsyncValue.loading()) {
     if (_auth != null) {
-      // Same stream as authStateProvider — avoids desync between router and actions.
       _auth.userChanges().listen((user) {
         state = AsyncValue.data(user);
       });
     } else {
-      // No Firebase – always guest
       state = const AsyncValue.data(null);
     }
   }
 
-  String getReadableErrorMessage(dynamic error) {
+  String getReadableErrorMessage(dynamic error, {bool isGoogleSignIn = false}) {
+    final raw = error.toString();
+    final lower = raw.toLowerCase();
+
+    // Google Sign-In DEVELOPER_ERROR (ApiException: 10 / obfuscated j: 10)
+    if (lower.contains('apiexception: 10') ||
+        lower.contains('api_exception: 10') ||
+        (lower.contains('sign_in_failed') &&
+            (lower.contains(': 10') || lower.contains(' 10')))) {
+      return 'Google Sign-In configuration error: The Play Store App Signing SHA-1 fingerprint needs to be added in Firebase Console (com.pakfittrack.app).';
+    }
+
     if (error is FirebaseAuthException) {
       switch (error.code) {
         case 'invalid-credential':
+          return 'Authentication failed. Please check your credentials or try again.';
         case 'wrong-password':
-        case 'user-not-found':
           return 'Incorrect email or password. Please check your credentials or sign up.';
+        case 'user-not-found':
+          return 'No account found with this email. Please sign up first.';
         case 'user-disabled':
           return 'This account has been disabled. Please contact support.';
         case 'email-already-in-use':
@@ -106,20 +103,22 @@ class AuthNotifier extends StateNotifier<AsyncValue<User?>> {
           return error.message ?? 'Authentication failed. Please try again.';
       }
     }
-    final errorStr = error.toString().toLowerCase();
-    if (errorStr.contains('socketexception') || 
-        errorStr.contains('network') || 
-        errorStr.contains('failed host lookup') ||
-        errorStr.contains('connectivity')) {
+    if (lower.contains('socketexception') ||
+        lower.contains('network') ||
+        lower.contains('failed host lookup') ||
+        lower.contains('connectivity')) {
       return 'No internet connection. Please check your network connection and try again.';
     }
-    return error.toString().replaceAll('Exception: ', '');
+    return raw
+        .replaceAll('Exception: ', '')
+        .replaceAll('PlatformException(', '')
+        .replaceAll(')', '');
   }
 
   Future<void> signInWithEmail(String email, String password) async {
     if (_auth == null) {
       state = AsyncValue.error('Firebase not configured', StackTrace.current);
-      return;
+      throw 'Firebase not configured';
     }
     state = const AsyncValue.loading();
     try {
@@ -127,14 +126,14 @@ class AuthNotifier extends StateNotifier<AsyncValue<User?>> {
     } catch (e, st) {
       final readable = getReadableErrorMessage(e);
       state = AsyncValue.error(readable, st);
-      rethrow;
+      throw readable;
     }
   }
 
   Future<void> registerWithEmail(String email, String password) async {
     if (_auth == null) {
       state = AsyncValue.error('Firebase not configured', StackTrace.current);
-      return;
+      throw 'Firebase not configured';
     }
     state = const AsyncValue.loading();
     try {
@@ -151,44 +150,42 @@ class AuthNotifier extends StateNotifier<AsyncValue<User?>> {
     } catch (e, st) {
       final readable = getReadableErrorMessage(e);
       state = AsyncValue.error(readable, st);
-      rethrow;
+      throw readable;
     }
   }
 
-  Future<void> signInWithGoogle() async {
-    if (_auth == null) {
+  /// Returns `true` if sign-in completed, `false` if user cancelled the picker.
+  Future<bool> signInWithGoogle() async {
+    final auth = _auth;
+    if (auth == null) {
       state = AsyncValue.error('Firebase not configured', StackTrace.current);
-      return;
+      throw 'Firebase not configured';
     }
     state = const AsyncValue.loading();
     try {
       final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
       if (googleUser == null) {
-        state = AsyncValue.error('Google sign-in was cancelled.', StackTrace.current);
-        return;
+        // Cancelled by user — restore state, do not navigate away.
+        state = AsyncValue.data(auth.currentUser);
+        return false;
       }
-      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+
+      final GoogleSignInAuthentication googleAuth =
+          await googleUser.authentication;
       final OAuthCredential credential = GoogleAuthProvider.credential(
         accessToken: googleAuth.accessToken,
         idToken: googleAuth.idToken,
       );
-      final userCredential = await _auth.signInWithCredential(credential);
-      state = AsyncValue.data(userCredential.user);
-    } catch (e, st) {
-      final readable = getReadableErrorMessage(e);
-      state = AsyncValue.error(readable, st);
-      rethrow;
-    }
-  }
 
-  Future<void> continueAsGuest() async {
-    final prefs = _ref.read(sharedPreferencesProvider);
-    final existing = prefs.getString(PrefsKeys.guestUid);
-    if (existing == null) {
-      await prefs.setString(
-          PrefsKeys.guestUid, 'guest_${DateTime.now().millisecondsSinceEpoch}');
+      final userCredential = await auth.signInWithCredential(credential);
+      state = AsyncValue.data(userCredential.user);
+      return true;
+    } catch (e, st) {
+      final readable = getReadableErrorMessage(e, isGoogleSignIn: true);
+      state = AsyncValue.error(readable, st);
+      debugPrint('[Auth] Google Sign-In failed: $e -> $readable');
+      throw readable;
     }
-    state = const AsyncValue.data(null);
   }
 
   Future<void> sendPasswordReset(String email) async {
@@ -205,8 +202,10 @@ class AuthNotifier extends StateNotifier<AsyncValue<User?>> {
   Future<void> signOut() async {
     await _auth?.signOut();
     await _googleSignIn.signOut();
+    // Clear any legacy guest prefs from older installs.
     final prefs = _ref.read(sharedPreferencesProvider);
     await prefs.remove(PrefsKeys.guestUid);
+    await prefs.remove(PrefsKeys.guestImportPromptedForUid);
     state = const AsyncValue.data(null);
   }
 }

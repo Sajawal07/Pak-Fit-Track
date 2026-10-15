@@ -12,7 +12,7 @@ import '../../providers/analytics_provider.dart';
 import '../../providers/user_provider.dart';
 import '../../providers/water_provider.dart';
 import '../../core/services/network_service.dart';
-import '../../providers/activity_weight_provider.dart';
+
 import '../../providers/notification_provider.dart';
 import '../../providers/streak_provider.dart';
 

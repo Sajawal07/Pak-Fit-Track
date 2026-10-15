@@ -78,17 +78,17 @@ class OnboardingScreen extends ConsumerWidget {
   Widget _buildStep(BuildContext context, WidgetRef ref, OnboardingState state) {
     switch (state.step) {
       case 0:
-        return _BasicInfoStep(key: const ValueKey(0));
+        return const _BasicInfoStep(key: ValueKey(0));
       case 1:
-        return _GoalStep(key: const ValueKey(1));
+        return const _GoalStep(key: ValueKey(1));
       case 2:
-        return _ActivityStep(key: const ValueKey(2));
+        return const _ActivityStep(key: ValueKey(2));
       case 3:
-        return _DietStep(key: const ValueKey(3));
+        return const _DietStep(key: ValueKey(3));
       case 4:
-        return _LifestyleStep(key: const ValueKey(4));
+        return const _LifestyleStep(key: ValueKey(4));
       case 5:
-        return _SummaryStep(key: const ValueKey(5));
+        return const _SummaryStep(key: ValueKey(5));
       default:
         return const SizedBox.shrink();
     }
@@ -689,10 +689,10 @@ class _SummaryStepState extends ConsumerState<_SummaryStep> {
               borderRadius: BorderRadius.circular(16),
               border: Border.all(color: AppColors.primary.withOpacity(0.3)),
             ),
-            child: Row(
+            child: const Row(
               children: [
-                const Icon(Icons.info_outline, color: AppColors.primary),
-                const SizedBox(width: 12),
+                Icon(Icons.info_outline, color: AppColors.primary),
+                SizedBox(width: 12),
                 Expanded(
                   child: Text(
                     'These targets will be used to personalize your daily nutrition tracking.',

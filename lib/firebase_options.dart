@@ -39,7 +39,7 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions android = FirebaseOptions(
     apiKey: 'AIzaSyAgo6pvd3fhm5VeFHZOIy7tBVhgO1rN9WM',
-    appId: '1:468407198380:android:cfe3e5c3fd3f1b982cb509',
+    appId: '1:468407198380:android:e4878156795f94e92cb509',
     messagingSenderId: '468407198380',
     projectId: 'pakfittrack',
     storageBucket: 'pakfittrack.firebasestorage.app',

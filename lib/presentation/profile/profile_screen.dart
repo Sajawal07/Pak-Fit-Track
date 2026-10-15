@@ -12,7 +12,9 @@ import '../../providers/user_provider.dart';
 import '../../providers/weight_unit_provider.dart';
 import '../../data/repositories/user_repository.dart';
 import '../../core/services/account_deletion_service.dart';
+import '../../core/services/account_local_cleanup_service.dart';
 import '../../core/services/privacy_preferences_service.dart';
+import '../../core/services/sync_service.dart';
 import '../../core/constants/prefs_keys.dart';
 import '../../core/services/step_tracker_service.dart';
 import 'package:flutter/services.dart';
@@ -33,9 +35,16 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   late TextEditingController _nameCtrl;
   late TextEditingController _weightCtrl;
   late TextEditingController _goalWeightCtrl;
+  late TextEditingController _ageCtrl;
+  late TextEditingController _heightCtrl;
   late TextEditingController _waistCtrl;
   late TextEditingController _neckCtrl;
   late TextEditingController _hipCtrl;
+  late TextEditingController _passwordCtrl;
+  Gender _editGender = Gender.male;
+  ActivityLevel _editActivity = ActivityLevel.moderate;
+  UserGoal _editGoal = UserGoal.lose;
+  DietPreference _editDiet = DietPreference.normal;
 
   @override
   void initState() {
@@ -43,9 +52,12 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     _nameCtrl = TextEditingController();
     _weightCtrl = TextEditingController();
     _goalWeightCtrl = TextEditingController();
+    _ageCtrl = TextEditingController();
+    _heightCtrl = TextEditingController();
     _waistCtrl = TextEditingController();
     _neckCtrl = TextEditingController();
     _hipCtrl = TextEditingController();
+    _passwordCtrl = TextEditingController();
   }
 
   Future<void> _syncProfileFromFirebase(
@@ -68,10 +80,35 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     _nameCtrl.dispose();
     _weightCtrl.dispose();
     _goalWeightCtrl.dispose();
+    _ageCtrl.dispose();
+    _heightCtrl.dispose();
     _waistCtrl.dispose();
     _neckCtrl.dispose();
     _hipCtrl.dispose();
+    _passwordCtrl.dispose();
     super.dispose();
+  }
+
+  void _enterEditMode(UserProfile profile, WeightUnit unit) {
+    _nameCtrl.text = profile.name;
+    _weightCtrl.text =
+        WeightUnits.toDisplay(profile.weight, unit).toStringAsFixed(1);
+    if (profile.goalWeight != null) {
+      _goalWeightCtrl.text =
+          WeightUnits.toDisplay(profile.goalWeight!, unit).toStringAsFixed(1);
+    } else {
+      _goalWeightCtrl.clear();
+    }
+    _ageCtrl.text = profile.age.toString();
+    _heightCtrl.text = profile.height.round().toString();
+    _waistCtrl.text = profile.waistCm?.toString() ?? '';
+    _neckCtrl.text = profile.neckCm?.toString() ?? '';
+    _hipCtrl.text = profile.hipCm?.toString() ?? '';
+    _editGender = profile.gender;
+    _editActivity = profile.activityLevel;
+    _editGoal = profile.goal;
+    _editDiet = profile.dietPreference;
+    setState(() => _editMode = true);
   }
 
   @override
@@ -113,7 +150,16 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             tooltip: 'Health Metrics Guide',
           ),
           TextButton(
-            onPressed: () => setState(() => _editMode = !_editMode),
+            onPressed: () {
+              if (_editMode) {
+                setState(() => _editMode = false);
+              } else {
+                final p = ref.read(userProfileStreamProvider).valueOrNull;
+                if (p != null) {
+                  _enterEditMode(p, ref.read(weightUnitProvider));
+                }
+              }
+            },
             child: Text(_editMode ? 'Cancel' : 'Edit',
                 style: const TextStyle(color: AppColors.primary)),
           ),
@@ -130,7 +176,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               : (firebaseUser?.displayName ?? (firebaseUser?.email?.split('@').first ?? 'User'));
           final displayEmail = profile.email.isNotEmpty
               ? profile.email
-              : (firebaseUser?.email ?? 'Guest');
+              : (firebaseUser?.email ?? 'Signed in');
 
           // Populate controllers on load
           final unit = ref.watch(weightUnitProvider);
@@ -177,9 +223,19 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     nameCtrl: _nameCtrl,
                     weightCtrl: _weightCtrl,
                     goalWeightCtrl: _goalWeightCtrl,
+                    ageCtrl: _ageCtrl,
+                    heightCtrl: _heightCtrl,
                     waistCtrl: _waistCtrl,
                     neckCtrl: _neckCtrl,
                     hipCtrl: _hipCtrl,
+                    gender: _editGender,
+                    activity: _editActivity,
+                    goal: _editGoal,
+                    diet: _editDiet,
+                    onGenderChanged: (v) => setState(() => _editGender = v),
+                    onActivityChanged: (v) => setState(() => _editActivity = v),
+                    onGoalChanged: (v) => setState(() => _editGoal = v),
+                    onDietChanged: (v) => setState(() => _editDiet = v),
                     weightUnit: unit,
                     onUnitChanged: (next) async {
                       final currentKg = double.tryParse(_weightCtrl.text);
@@ -235,10 +291,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     .fadeIn(duration: 400.ms, delay: 180.ms),
                 const SizedBox(height: 16),
                 _SettingsSection(
-                  isGuest: profile.isGuest,
                   onRedo: () => context.go('/onboarding'),
                   onSignOut: () => _signOut(context),
-                  onDeleteAccount: () => _deleteAccount(context, profile.isGuest),
+                  onDeleteAccount: () => _deleteAccount(context),
                 ).animate().fadeIn(duration: 400.ms, delay: 200.ms),
               ],
             ),
@@ -255,12 +310,20 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     final unit = ref.read(weightUnitProvider);
     final n = double.tryParse(_weightCtrl.text);
     final g = double.tryParse(_goalWeightCtrl.text);
+    final age = int.tryParse(_ageCtrl.text.trim());
+    final height = double.tryParse(_heightCtrl.text.trim());
     final w = double.tryParse(_waistCtrl.text);
     final nk = double.tryParse(_neckCtrl.text);
     final h = double.tryParse(_hipCtrl.text);
 
     profile
       ..name = _nameCtrl.text.trim()
+      ..age = age ?? profile.age
+      ..height = height ?? profile.height
+      ..gender = _editGender
+      ..activityLevel = _editActivity
+      ..goal = _editGoal
+      ..dietPreference = _editDiet
       ..weight = n != null ? WeightUnits.toKg(n, unit) : profile.weight
       ..goalWeight = g != null ? WeightUnits.toKg(g, unit) : null
       ..waistCm = w
@@ -268,8 +331,15 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       ..hipCm = h
       ..updatedAt = DateTime.now();
 
-    // Recalculate targets
+    // Recalculate targets (same logic as onboarding)
     final actStr = profile.activityLevel.name;
+    final goalStr = profile.goal.name;
+    final dietStr = switch (profile.dietPreference) {
+      DietPreference.keto => 'keto',
+      DietPreference.lowCarb => 'low_carb',
+      DietPreference.highProtein => 'high_protein',
+      _ => 'normal',
+    };
     final bmr = BmrCalculator.calculateBMR(
       weight: profile.weight,
       height: profile.height,
@@ -277,18 +347,35 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       gender: profile.gender == Gender.male ? 'male' : 'female',
     );
     final tdee = BmrCalculator.calculateTDEE(bmr: bmr, activityLevel: actStr);
-    final goalStr = profile.goal == UserGoal.lose
-        ? 'lose'
-        : profile.goal == UserGoal.gain
-            ? 'gain'
-            : 'maintain';
+    final calorieTarget =
+        BmrCalculator.calculateCalorieTarget(tdee: tdee, goal: goalStr);
+    final proteinTarget = BmrCalculator.calculateProteinTarget(
+      weight: profile.weight,
+      goal: goalStr,
+      activityLevel: actStr,
+    );
+    final fatTarget = BmrCalculator.calculateFatTarget(
+      calorieTarget: calorieTarget,
+      dietPreference: dietStr,
+    );
+    final carbsTarget = BmrCalculator.calculateCarbsTarget(
+      calorieTarget: calorieTarget,
+      proteinGrams: proteinTarget,
+      fatGrams: fatTarget,
+      dietPreference: dietStr,
+    );
     profile
       ..bmr = bmr
       ..tdee = tdee
-      ..dailyCalorieTarget =
-          BmrCalculator.calculateCalorieTarget(tdee: tdee, goal: goalStr);
+      ..dailyCalorieTarget = calorieTarget
+      ..dailyProteinTarget = proteinTarget
+      ..dailyFatTarget = fatTarget
+      ..dailyCarbsTarget = carbsTarget;
 
     await ref.read(userRepositoryProvider).saveProfile(profile);
+    try {
+      await ref.read(syncServiceProvider).pushUserProfileNow(profile.uid);
+    } catch (_) {}
 
     setState(() => _editMode = false);
 
@@ -302,20 +389,22 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     }
   }
 
-  Future<void> _deleteAccount(BuildContext context, bool isGuest) async {
+  Future<void> _deleteAccount(BuildContext context) async {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: AppColors.surface,
-        title: Text(
-          isGuest ? 'Delete local data' : 'Delete account',
-          style: const TextStyle(color: AppColors.textPrimary),
+        title: const Text(
+          'Request account deletion',
+          style: TextStyle(color: AppColors.textPrimary),
         ),
-        content: Text(
-          isGuest
-              ? 'This removes all guest data from this device. This cannot be undone.'
-              : 'This permanently deletes your account, cloud data, and local logs. This cannot be undone.',
-          style: const TextStyle(color: AppColors.textSecondary),
+        content: const Text(
+          'This submits a deletion request — it does not delete your account immediately.\n\n'
+          'An administrator will manually review and process your request. '
+          'Until the request is processed, your account and cloud data remain stored.\n\n'
+          'Once your request is recorded, the fitness data stored on this device will be cleared and you will be signed out.\n\n'
+          'To follow up at any time, email Sajawal0005@gmail.com from your registered email address.',
+          style: TextStyle(color: AppColors.textSecondary),
         ),
         actions: [
           TextButton(
@@ -325,32 +414,186 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           ElevatedButton(
             onPressed: () => Navigator.pop(ctx, true),
             style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
-            child: const Text('Delete'),
+            child: const Text('Submit Request'),
           ),
         ],
       ),
     );
 
     if (confirmed != true || !context.mounted) return;
+    if (!context.mounted) return;
+    final auth = ref.read(firebaseAuthProvider);
+    final user = auth?.currentUser;
+    if (user == null) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('You must be signed in to request deletion.'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
+      return;
+    }
 
     try {
       final service = ref.read(accountDeletionServiceProvider);
-      if (isGuest) {
-        await service.deleteGuestData();
-      } else {
-        await service.deleteAccount();
+
+      final hasPending = await service.hasPendingRequest();
+      if (!context.mounted) return;
+      if (hasPending) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+                'Your account deletion request is already pending. '
+                'To follow up, email Sajawal0005@gmail.com from your registered email address.'),
+            backgroundColor: AppColors.warning,
+          ),
+        );
+        return;
       }
-      if (context.mounted) context.go('/auth');
+
+      final reauthResult = await service.performReauthentication();
+      if (!context.mounted) return;
+      if (!reauthResult.success && reauthResult.requiresPassword) {
+        final passwordResult = await _showPasswordDialog(context);
+        if (!context.mounted || passwordResult == null) return;
+
+        final reauth = await service.reauthenticateWithPassword(passwordResult);
+        if (!context.mounted) return;
+        if (!reauth.success) {
+          _showErrorSnackBar(context, reauth.message);
+          return;
+        }
+      } else if (!reauthResult.success) {
+        if (!context.mounted) return;
+        _showErrorSnackBar(context, reauthResult.message);
+        return;
+      }
+
+      if (!context.mounted) return;
+      final submitResult = await service.submitDeletionRequest();
+      if (!context.mounted) return;
+      if (!submitResult.success) {
+        _showErrorSnackBar(context, submitResult.message);
+        return;
+      }
+
+      // The request is now recorded in Firestore (status "pending").
+      // 1) Stop cloud sync first so nothing can be pushed or re-pulled
+      //    between cleanup and sign-out.
+      // 2) Clear this user's LOCAL device data. Cloud records are deleted
+      //    later, manually, by the administrator (docs/ACCOUNT_DELETION.md).
+      // The pending request itself lives in Firestore and is unaffected.
+      try {
+        ref.read(syncServiceProvider).stopPeriodicSync();
+      } catch (_) {}
+      try {
+        await ref
+            .read(accountLocalCleanupServiceProvider)
+            .clearLocalDataForDeletionRequest(user.uid);
+      } catch (e) {
+        // Cleanup is best-effort; the request itself already succeeded.
+        debugPrint('[AccountDeletion] Local cleanup failed: $e');
+      }
+
+      if (context.mounted) _showSuccessAndSignOut(context);
     } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(e.toString().replaceAll('Exception: ', '')),
+            content: Text(
+              _getFriendlyErrorMessage(e),
+              style: const TextStyle(color: Colors.white),
+            ),
             backgroundColor: AppColors.error,
           ),
         );
       }
     }
+  }
+
+  Future<String?> _showPasswordDialog(BuildContext context) async {
+    _passwordCtrl.clear();
+    return await showDialog<String>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppColors.surface,
+        title: const Text(
+          'Confirm identity',
+          style: TextStyle(color: AppColors.textPrimary),
+        ),
+        content: const Text(
+          'For security, please enter your current password to confirm account deletion.',
+          style: TextStyle(color: AppColors.textSecondary),
+        ),
+        contentPadding: const EdgeInsets.fromLTRB(24, 16, 24, 8),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, null),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(ctx, _passwordCtrl.text),
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
+            child: const Text('Confirm'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showSuccessAndSignOut(BuildContext context) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppColors.surface,
+        title: const Text(
+          'Deletion request submitted',
+          style: TextStyle(color: AppColors.success),
+        ),
+        content: const Text(
+          'Your account deletion request has been recorded.\n\n'
+          'Your account and cloud data have NOT been deleted yet — an administrator will now process your request manually.\n\n'
+          'The fitness data stored on this device has been cleared. Tap OK to sign out.\n\n'
+          'To follow up, email Sajawal0005@gmail.com from your registered email address.',
+          style: TextStyle(color: AppColors.textSecondary),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              ref.read(authNotifierProvider.notifier).signOut();
+              if (context.mounted) context.go('/auth');
+            },
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showErrorSnackBar(BuildContext context, String message) {
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(message),
+          backgroundColor: AppColors.error,
+        ),
+      );
+    }
+  }
+
+  String _getFriendlyErrorMessage(dynamic error) {
+    final raw = error.toString().toLowerCase();
+    if (raw.contains('permission-denied') || raw.contains('permission_denied')) {
+      return 'You do not have permission to submit a deletion request.';
+    }
+    if (raw.contains('network') || raw.contains('unavailable')) {
+      return 'Network error. Please check your internet connection and try again.';
+    }
+    return 'An unexpected error occurred. Please try again.';
   }
 
   Future<void> _signOut(BuildContext context) async {
@@ -538,9 +781,19 @@ class _EditSection extends StatelessWidget {
   final TextEditingController nameCtrl;
   final TextEditingController weightCtrl;
   final TextEditingController goalWeightCtrl;
+  final TextEditingController ageCtrl;
+  final TextEditingController heightCtrl;
   final TextEditingController waistCtrl;
   final TextEditingController neckCtrl;
   final TextEditingController hipCtrl;
+  final Gender gender;
+  final ActivityLevel activity;
+  final UserGoal goal;
+  final DietPreference diet;
+  final ValueChanged<Gender> onGenderChanged;
+  final ValueChanged<ActivityLevel> onActivityChanged;
+  final ValueChanged<UserGoal> onGoalChanged;
+  final ValueChanged<DietPreference> onDietChanged;
   final WeightUnit weightUnit;
   final ValueChanged<WeightUnit> onUnitChanged;
   final VoidCallback onSave;
@@ -550,9 +803,19 @@ class _EditSection extends StatelessWidget {
     required this.nameCtrl,
     required this.weightCtrl,
     required this.goalWeightCtrl,
+    required this.ageCtrl,
+    required this.heightCtrl,
     required this.waistCtrl,
     required this.neckCtrl,
     required this.hipCtrl,
+    required this.gender,
+    required this.activity,
+    required this.goal,
+    required this.diet,
+    required this.onGenderChanged,
+    required this.onActivityChanged,
+    required this.onGoalChanged,
+    required this.onDietChanged,
     required this.weightUnit,
     required this.onUnitChanged,
     required this.onSave,
@@ -583,6 +846,39 @@ class _EditSection extends StatelessWidget {
               labelText: 'Name',
               prefixIcon: Icon(Icons.person_outline),
             ),
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: ageCtrl,
+                  keyboardType: TextInputType.number,
+                  decoration: const InputDecoration(labelText: 'Age (years)'),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: TextField(
+                  controller: heightCtrl,
+                  keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true),
+                  decoration: const InputDecoration(labelText: 'Height (cm)'),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          const Text('Gender',
+              style: TextStyle(color: AppColors.textSecondary, fontSize: 13)),
+          const SizedBox(height: 6),
+          SegmentedButton<Gender>(
+            segments: const [
+              ButtonSegment(value: Gender.male, label: Text('Male')),
+              ButtonSegment(value: Gender.female, label: Text('Female')),
+            ],
+            selected: {gender},
+            onSelectionChanged: (s) => onGenderChanged(s.first),
           ),
           const SizedBox(height: 12),
           Row(
@@ -629,6 +925,79 @@ class _EditSection extends StatelessWidget {
                 ),
               ),
             ],
+          ),
+          const SizedBox(height: 12),
+          const Text('Activity level',
+              style: TextStyle(color: AppColors.textSecondary, fontSize: 13)),
+          const SizedBox(height: 6),
+          DropdownButtonFormField<ActivityLevel>(
+            value: activity,
+            dropdownColor: AppColors.surface,
+            style: const TextStyle(color: AppColors.textPrimary, fontSize: 14),
+            decoration: const InputDecoration(border: OutlineInputBorder()),
+            items: const [
+              DropdownMenuItem(
+                  value: ActivityLevel.sedentary, child: Text('Sedentary')),
+              DropdownMenuItem(
+                  value: ActivityLevel.light, child: Text('Light')),
+              DropdownMenuItem(
+                  value: ActivityLevel.moderate, child: Text('Moderate')),
+              DropdownMenuItem(
+                  value: ActivityLevel.active, child: Text('Active')),
+            ],
+            onChanged: (v) {
+              if (v != null) onActivityChanged(v);
+            },
+          ),
+          const SizedBox(height: 12),
+          const Text('Goal',
+              style: TextStyle(color: AppColors.textSecondary, fontSize: 13)),
+          const SizedBox(height: 6),
+          DropdownButtonFormField<UserGoal>(
+            value: goal,
+            dropdownColor: AppColors.surface,
+            style: const TextStyle(color: AppColors.textPrimary, fontSize: 14),
+            decoration: const InputDecoration(border: OutlineInputBorder()),
+            items: const [
+              DropdownMenuItem(value: UserGoal.lose, child: Text('Lose Fat')),
+              DropdownMenuItem(
+                  value: UserGoal.maintain, child: Text('Maintain')),
+              DropdownMenuItem(
+                  value: UserGoal.gain, child: Text('Gain Muscle')),
+            ],
+            onChanged: (v) {
+              if (v != null) onGoalChanged(v);
+            },
+          ),
+          const SizedBox(height: 12),
+          const Text('Diet preference',
+              style: TextStyle(color: AppColors.textSecondary, fontSize: 13)),
+          const SizedBox(height: 6),
+          DropdownButtonFormField<DietPreference>(
+            value: diet,
+            dropdownColor: AppColors.surface,
+            style: const TextStyle(color: AppColors.textPrimary, fontSize: 14),
+            decoration: const InputDecoration(border: OutlineInputBorder()),
+            items: const [
+              DropdownMenuItem(
+                  value: DietPreference.normal, child: Text('Balanced')),
+              DropdownMenuItem(
+                  value: DietPreference.highProtein,
+                  child: Text('High Protein')),
+              DropdownMenuItem(
+                  value: DietPreference.lowCarb, child: Text('Low Carb')),
+              DropdownMenuItem(
+                  value: DietPreference.keto, child: Text('Keto')),
+              DropdownMenuItem(
+                  value: DietPreference.pakistaniTraditional,
+                  child: Text('Pakistani')),
+              DropdownMenuItem(
+                  value: DietPreference.vegetarian,
+                  child: Text('Vegetarian')),
+            ],
+            onChanged: (v) {
+              if (v != null) onDietChanged(v);
+            },
           ),
           const SizedBox(height: 12),
           Row(
@@ -918,13 +1287,11 @@ final stepTrackingEnabledProvider = StateProvider<bool>((ref) {
 
 // ── Settings ──────────────────────────────────────────────────────────────────
 class _SettingsSection extends StatelessWidget {
-  final bool isGuest;
   final VoidCallback onRedo;
   final VoidCallback onSignOut;
   final VoidCallback onDeleteAccount;
 
   const _SettingsSection({
-    required this.isGuest,
     required this.onRedo,
     required this.onSignOut,
     required this.onDeleteAccount,
@@ -968,10 +1335,8 @@ class _SettingsSection extends StatelessWidget {
         const SizedBox(height: 10),
         _settingsTile(
           icon: Icons.delete_forever_rounded,
-          label: isGuest ? 'Delete local data' : 'Delete account',
-          subtitle: isGuest
-              ? 'Remove all guest data from this device'
-              : 'Permanently delete account and data',
+          label: 'Delete account',
+          subtitle: 'Submit a deletion request (processed manually)',
           color: AppColors.error,
           onTap: onDeleteAccount,
         ),

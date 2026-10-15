@@ -1,30 +1,119 @@
 Pak Fit Track — Privacy Policy
-Last updated: May 2026
+Last updated: October 15, 2026
 
-INFORMATION WE COLLECT
-• Account: email address (Firebase Authentication)
-• Profile: name, age, gender, height, weight, goals, diet preferences
-• Health & fitness logs: food intake, weight, body measurements, workouts, water intake
-• Optional: step count (only if you grant Health Connect / activity permission)
-• Analytics (optional, OFF by default): enable in Profile → Privacy & data. Events: app opens, onboarding, meal type when logging food
-• Local device ID: random UUID stored on device for offline sync queue (not used for ads)
+This Privacy Policy describes how Pak Fit Track ("the App") collects, uses, stores, shares, and protects your personal information.
 
-HOW WE USE DATA
-To provide nutrition and fitness tracking, sync data when signed in, and improve the app.
+1. INFORMATION WE COLLECT
 
-STORAGE
-Data is stored on your device (Isar database). When signed in, profile and logs sync to Google Firebase Firestore under your account.
+Account and Profile Data:
+- Email address (via Firebase Authentication)
+- Name (from Google Sign-In or manually entered)
+- Age, gender, height, weight, fitness goals, activity level, diet preferences, body measurements
 
-SHARING
-We do not sell personal data. Google Firebase processes data as our infrastructure provider.
+Health and Fitness Data:
+- Food logs (meals, nutrition information)
+- Weight logs and body measurements
+- Activity logs (workouts, physical activities)
+- Step count data (only when you grant Health Connect / activity permission)
 
-YOUR CHOICES
-• Disable analytics: Profile → Privacy & data
-• Delete account: Profile → Delete account (removes Firebase Auth, Firestore data, and local logs on this device)
-• Guest mode: data stays on device until you delete local data or uninstall
+Device and Technical Data:
+- App usage events (only if you enable Firebase Analytics)
 
-NOT COLLECTED
-Location, contacts, photos, SMS, crash reports, push notification tokens, payment info, advertising ID.
+2. HOW WE USE DATA
 
-CONTACT
-support@pakfittrack.com
+To provide and maintain the App's nutrition and fitness tracking features.
+To sync your data across devices when signed in.
+To generate nutrition, calorie, and fitness estimates.
+To manage your account and authenticate your identity.
+To process deletion requests.
+To improve the App through analytics (only if you opt in).
+
+3. DATA STORAGE
+
+On device: Isar database (profile data, logs, settings), SharedPreferences (settings), native step-history storage.
+Remotely: Firebase Firestore (profile data and logs under users/{uid}), Firebase Authentication (account credentials).
+Firestore security rules enforce user-level access control.
+
+4. DATA SHARING
+
+We share data with the following service providers:
+- Google Firebase (Firestore): Profile data, food logs, weight logs, activity logs — cloud storage and sync
+- Google Firebase (Authentication): Email, name, account credentials — account management
+- Google Firebase (App Check): Device integrity signals — security
+- Google Firebase (Analytics): App usage events — only when you opt in
+- Google Sign-In: Name, email — authentication
+- Health Connect (Android): Step count data — only with your permission; read-only
+
+We do not sell personal data. We do not share data with advertisers. We do not use advertising identifiers.
+
+5. ANALYTICS
+
+Firebase Analytics is disabled by default. You can enable it in Profile → Privacy & data.
+When enabled, events collected include: app_open, daily_active_user, onboarding_complete, food_logged (meal_type only), retention_check.
+Analytics events are general app-usage records and are not linked to your account. If you enabled analytics, events already collected are retained by Google Analytics according to its retention settings; turning analytics off stops further collection.
+
+6. DATA RETENTION
+
+Account and fitness data: retained in Firestore while your account is active, and deleted when an administrator processes your account-deletion request.
+Firebase Authentication account: retained while your account is active, and deleted when an administrator processes your deletion request.
+Deletion request records: retained only until the request is processed, as a record that the request was received.
+Local device data: cleared on the device when you submit an account deletion request in the app. Signing out does NOT delete your data — it stays on your device until you submit a deletion request or uninstall the App.
+Notifications scheduled by the app: cleared when you submit an account deletion request.
+
+7. ACCOUNT DELETION
+
+Deletion is a request, not an instant action.
+
+In the app: Profile → Settings → Delete account → confirm → re-authenticate. The app records your deletion request, clears the fitness data stored on that device, and signs you out. Your account and cloud data are NOT deleted at that moment.
+By email (if you cannot access the app): email Sajawal0005@gmail.com from your registered email address with the subject "Account deletion request".
+Web information page: https://pak-fit-track-web.web.app/delete-account.html
+
+An administrator manually reviews and processes each request. Once processed:
+- Your Firebase Authentication account is deleted (it can no longer be used to sign in).
+- Your cloud profile and your food, weight, and activity logs are deleted.
+- The deletion request record is removed.
+
+Requests are processed manually, in the order received. Our target is to complete valid requests within [PLACEHOLDER — APP OWNER TO CONFIRM] of receipt.
+
+If we cannot verify that a request comes from the account owner, we will reply to the registered email address asking for confirmation and the request stays pending until ownership is confirmed. To follow up at any time, email Sajawal0005@gmail.com from your registered email address.
+
+Data that may remain after deletion, and why:
+- Copies on your other devices: the App cannot remotely wipe other phones; after your account is deleted those copies stop syncing — uninstall the App or clear its data on each device.
+- Analytics events already collected (if you enabled analytics): general app-usage records not linked to your account, retained per Google Analytics retention settings.
+- Step data in your device's health store (Health Connect): the App only reads it and never deletes it.
+- Your Google account and Google's own records: not affected.
+
+8. YOUR RIGHTS
+
+Access, correction, deletion of your data.
+Opt-out of analytics at any time.
+Contact us with questions.
+
+9. SECURITY
+
+Data in transit encrypted (HTTPS/TLS).
+Firestore rules enforce user access control.
+Re-authentication required before submitting a deletion request.
+App Check enforced for Firestore.
+
+10. INTERNATIONAL DATA TRANSFER
+
+Data may be processed on Google servers in the United States and other countries. Google processes data as a service provider under their privacy policy.
+
+11. CHILDREN'S DATA
+
+The App is not intended for children under 13. We do not knowingly collect personal information from children under 13.
+
+12. CONTACT
+
+Email: Sajawal0005@gmail.com
+Privacy Policy: https://pak-fit-track-web.web.app/privacy-policy.html
+Account Deletion: https://pak-fit-track-web.web.app/delete-account.html
+
+13. CHANGES
+
+We may update this Privacy Policy. Changes will be reflected by updating the "Last updated" date.
+
+14. CONSENT
+
+By using the App, you consent to our collection and use of information as described in this Privacy Policy.

@@ -1,1 +1,38 @@
-rules_version = '2'; service cloud.firestore { match /databases/{database}/documents { match /users/{uid}/{document=**} { allow read, write: if request.auth != null && request.auth.uid == uid; } match /arena_leaderboard/{document=**} { allow read: if request.auth != null; allow write: if false; } } }
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Profile document at users/{uid}
+    match /users/{uid} {
+      allow read, write: if request.auth != null && request.auth.uid == uid;
+
+      // Subcollections: food_logs, weight_logs, activity_logs, etc.
+      match /{document=**} {
+        allow read, write: if request.auth != null && request.auth.uid == uid;
+      }
+    }
+
+    match /arena_leaderboard/{document=**} {
+      allow read: if request.auth != null;
+      allow write: if false;
+    }
+
+    // Deletion requests collection
+    // Only the authenticated user can create a request for themselves.
+    // After creation, no updates or deletes are allowed.
+    match /deletionRequests/{uid} {
+      // Read: only the owner can read their own deletion request
+      allow read: if request.auth != null && request.auth.uid == uid;
+
+      // Create: authenticated user creating a request for themselves
+      // with only the allowed fields and status 'pending'
+      allow create: if request.auth != null
+          && request.auth.uid == uid
+          && request.resource.data.keys().hasOnly(['uid', 'email', 'requestedAt', 'status'])
+          && request.resource.data.uid == request.auth.uid
+          && request.resource.data.status == 'pending';
+
+      // Update and delete: never allowed — request is immutable after creation
+      allow update, delete: if false;
+    }
+  }
+}

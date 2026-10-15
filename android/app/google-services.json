@@ -14,6 +14,22 @@
       },
       "oauth_client": [
         {
+          "client_id": "468407198380-dtio69kgpn08vm5j816eo245quj1tveh.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.pakfittrack",
+            "certificate_hash": "516cd1d1517b240fe69e198135dccfb56687d291"
+          }
+        },
+        {
+          "client_id": "468407198380-kvfre0j0qtegl3vm6djp4tq0jp6pmejc.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.pakfittrack",
+            "certificate_hash": "ec29a4640f2bcd3fb50789e9fc8e6a4104931c40"
+          }
+        },
+        {
           "client_id": "468407198380-mgprhdtlhb4l0pkiis1pan17r71jjbo5.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
@@ -51,12 +67,100 @@
     },
     {
       "client_info": {
+        "mobilesdk_app_id": "1:468407198380:android:c79da59b7a4f90e72cb509",
+        "android_client_info": {
+          "package_name": "com.hercyclebloom.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "468407198380-0k4e3ekhdmjdouthf8sljg5mdfgdrr9u.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAgo6pvd3fhm5VeFHZOIy7tBVhgO1rN9WM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "468407198380-0k4e3ekhdmjdouthf8sljg5mdfgdrr9u.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "468407198380-nvjghqcv3p4qhg2j1vkho69365mv8ltk.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.pakfittrack"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:468407198380:android:fa8e645bc44ab9352cb509",
+        "android_client_info": {
+          "package_name": "com.mindspark"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "468407198380-0k4e3ekhdmjdouthf8sljg5mdfgdrr9u.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAgo6pvd3fhm5VeFHZOIy7tBVhgO1rN9WM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "468407198380-0k4e3ekhdmjdouthf8sljg5mdfgdrr9u.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "468407198380-nvjghqcv3p4qhg2j1vkho69365mv8ltk.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.pakfittrack"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
         "mobilesdk_app_id": "1:468407198380:android:e4878156795f94e92cb509",
         "android_client_info": {
           "package_name": "com.pakfittrack.app"
         }
       },
       "oauth_client": [
+        {
+          "client_id": "468407198380-s4qcjf4pnfm8uanhk9oitpgm70rkssif.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.pakfittrack.app",
+            "certificate_hash": "2fa85bd3ee38fd9585e78bcb7bcb9d330aec4602"
+          }
+        },
+        {
+          "client_id": "468407198380-ug5vte2q977ek5jh0r9egkbl5ui3js6r.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.pakfittrack.app",
+            "certificate_hash": "516cd1d1517b240fe69e198135dccfb56687d291"
+          }
+        },
         {
           "client_id": "468407198380-0k4e3ekhdmjdouthf8sljg5mdfgdrr9u.apps.googleusercontent.com",
           "client_type": 3

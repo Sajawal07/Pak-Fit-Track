@@ -4,9 +4,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/constants/app_colors.dart';
 import '../../providers/auth_provider.dart';
-
-import '../../data/repositories/user_repository.dart';
-import '../../main.dart';
+import '../../core/services/sync_service.dart';
 
 class SplashScreen extends ConsumerStatefulWidget {
   const SplashScreen({super.key});
@@ -19,14 +17,19 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
     with SingleTickerProviderStateMixin {
   late AnimationController _ctrl;
   bool _minTimeElapsed = false;
-  bool _navigated = false;
+  bool _navigating = false;
 
   @override
   void initState() {
     super.initState();
-    _ctrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 800));
+    _ctrl = AnimationController(
+        vsync: this, duration: const Duration(milliseconds: 800));
     _ctrl.forward();
     _startTimer();
+    // Safety net if Firebase/profile is slow.
+    Future.delayed(const Duration(seconds: 6), () {
+      if (mounted && !_navigating) _routeNow(force: true);
+    });
   }
 
   @override
@@ -36,65 +39,70 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
   }
 
   Future<void> _startTimer() async {
-    await Future.delayed(const Duration(milliseconds: 2000));
+    await Future.delayed(const Duration(milliseconds: 1200));
     if (!mounted) return;
-    setState(() {
-      _minTimeElapsed = true;
-    });
-    _tryNavigate();
+    setState(() => _minTimeElapsed = true);
+    await _routeNow();
   }
 
-  Future<void> _tryNavigate() async {
-    if (!_minTimeElapsed || _navigated) return;
-    
-    final authBootstrapped = ref.read(authBootstrapCompleteProvider);
-    if (!authBootstrapped) return; // Wait for the listener to call this again
-    
-    _navigated = true;
+  Future<void> _routeNow({bool force = false}) async {
+    if (!mounted || _navigating) return;
+    if (!_minTimeElapsed && !force) return;
 
-    final authState = ref.read(authStateProvider);
-    final user = authState.value;
+    final bootstrapped = ref.read(authBootstrapCompleteProvider);
+    if (!bootstrapped && !force) return;
 
-    if (user != null) {
-      // UX-only: avoid a brief dashboard/onboarding flash for unverified users.
-      // Router guard remains the authority for access control.
-      if (user.emailVerified != true) {
-        context.go('/verify-email');
-        return;
-      }
-      final profile = await ref.read(userRepositoryProvider).getProfile(user.uid);
+    // Prefer live Firebase user — more reliable on cold start than stream lag.
+    final user = ref.read(firebaseAuthProvider)?.currentUser ??
+        ref.read(authStateProvider).valueOrNull;
+
+    if (user == null) {
+      if (!bootstrapped && !force) return;
+      _navigating = true;
+      if (mounted) context.go('/auth');
+      return;
+    }
+
+    if (user.emailVerified != true) {
+      _navigating = true;
+      if (mounted) context.go('/verify-email');
+      return;
+    }
+
+    _navigating = true;
+    try {
+      // Restore cloud profile on reinstall before deciding onboarding.
+      final profile = await ref
+          .read(syncServiceProvider)
+          .ensureUserProfile(user.uid)
+          .timeout(const Duration(seconds: 8));
       if (!mounted) return;
       if (profile == null || !profile.onboardingComplete) {
         context.go('/onboarding');
       } else {
         context.go('/dashboard');
       }
-    } else {
-      // Check guest
-      final prefs = ref.read(sharedPreferencesProvider);
-      final guestUid = prefs.getString('guest_uid');
-      if (guestUid != null) {
-        final profile = await ref.read(userRepositoryProvider).getProfile(guestUid);
-        if (!mounted) return;
-        if (profile == null || !profile.onboardingComplete) {
-          context.go('/onboarding');
-        } else {
-          context.go('/dashboard');
-        }
-      } else {
-        if (!mounted) return;
-        context.go('/auth');
-      }
+    } catch (_) {
+      // Returning signed-in user: don't trap on splash if profile read fails.
+      if (!mounted) return;
+      context.go('/dashboard');
     }
   }
 
   @override
   Widget build(BuildContext context) {
     ref.listen<bool>(authBootstrapCompleteProvider, (prev, next) {
-      if (next == true) {
-        _tryNavigate();
-      }
+      if (next) _routeNow();
     });
+    ref.listen(authStateProvider, (prev, next) {
+      if (!next.isLoading) _routeNow();
+    });
+
+    if (ref.watch(authBootstrapCompleteProvider) &&
+        _minTimeElapsed &&
+        !_navigating) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _routeNow());
+    }
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -102,7 +110,6 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // Logo
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
@@ -110,7 +117,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                 borderRadius: BorderRadius.circular(28),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.25),
+                    color: Colors.black.withValues(alpha: 0.25),
                     blurRadius: 15,
                     offset: const Offset(0, 5),
                   )
@@ -129,9 +136,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                 .animate()
                 .scale(duration: 600.ms, curve: Curves.elasticOut)
                 .fadeIn(duration: 400.ms),
-
             const SizedBox(height: 24),
-
             const Text(
               'Pak Fit Track',
               style: TextStyle(
@@ -144,9 +149,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                 .animate()
                 .slideY(begin: 0.3, duration: 500.ms, delay: 200.ms)
                 .fadeIn(duration: 500.ms, delay: 200.ms),
-
             const SizedBox(height: 8),
-
             const Text(
               'Pakistan\'s Smart Nutrition Tracker',
               style: TextStyle(
@@ -154,12 +157,8 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                 color: AppColors.textSecondary,
                 letterSpacing: 0.2,
               ),
-            )
-                .animate()
-                .fadeIn(duration: 500.ms, delay: 400.ms),
-
+            ).animate().fadeIn(duration: 500.ms, delay: 400.ms),
             const SizedBox(height: 60),
-
             const SizedBox(
               width: 40,
               height: 40,

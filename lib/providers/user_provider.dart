@@ -4,6 +4,7 @@ import '../data/repositories/user_repository.dart';
 import '../core/utils/bmr_calculator.dart';
 import 'auth_provider.dart';
 import '../core/services/analytics_service.dart';
+import '../core/services/sync_service.dart';
 import '../data/models/weight_log.dart';
 import '../data/repositories/weight_activity_repository.dart';
 
@@ -152,7 +153,7 @@ class OnboardingNotifier extends StateNotifier<OnboardingState> {
       ..uid = uid
       ..name = name.isNotEmpty ? name : (profile.name.isNotEmpty ? profile.name : 'User')
       ..email = email.isNotEmpty ? email : (profile.email.isNotEmpty ? profile.email : '')
-      ..isGuest = (firebaseUser == null)
+      ..isGuest = false
       ..age = s.age
       ..gender = s.gender
       ..weight = s.weight
@@ -174,6 +175,11 @@ class OnboardingNotifier extends StateNotifier<OnboardingState> {
       ..updatedAt = DateTime.now();
 
     await repo.saveProfile(profile);
+
+    // Push to Firestore immediately so reinstall can restore this profile.
+    try {
+      await _ref.read(syncServiceProvider).pushUserProfileNow(uid);
+    } catch (_) {}
 
     // ALSO save the initial weight and measurements log!
     try {

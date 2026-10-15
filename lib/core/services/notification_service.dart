@@ -281,6 +281,20 @@ class NotificationService {
     } catch (_) {}
   }
 
+  /// Cancels all shown and scheduled local notifications.
+  ///
+  /// Used by the account-deletion local cleanup
+  /// (AccountLocalCleanupService). The generic 9 PM reminder — whose text
+  /// contains no personal data — is re-scheduled by [init] on the next app
+  /// start.
+  Future<void> cancelAllNotifications() async {
+    try {
+      await _plugin.cancelAll();
+    } catch (e) {
+      debugPrint('[NotificationService] cancelAll failed: $e');
+    }
+  }
+
   static void _onNotificationTap(NotificationResponse response) {
     debugPrint(
         '[NotificationService] Notification tapped: ${response.payload}');

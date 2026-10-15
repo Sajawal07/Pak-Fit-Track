@@ -5,17 +5,92 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Pak Fit Track — Privacy Policy</title>
   <style>
-    body { font-family: system-ui, sans-serif; max-width: 720px; margin: 2rem auto; padding: 0 1rem; line-height: 1.6; color: #222; }
-    h1 { font-size: 1.5rem; }
-    h2 { font-size: 1.1rem; margin-top: 1.5rem; }
+    body { font-family: system-ui, -apple-system, Segoe UI, sans-serif; max-width: 720px; margin: 2rem auto; padding: 0 1.25rem 3rem; line-height: 1.65; color: #1a1a1a; }
+    h1 { font-size: 1.6rem; margin-bottom: 0.25rem; }
+    h2 { font-size: 1.15rem; margin-top: 1.75rem; }
+    h3 { font-size: 1rem; margin-top: 1.25rem; }
     a { color: #16a34a; }
+    .meta { color: #666; font-size: 0.95rem; }
+    .notice { background: #fff7ed; border: 1px solid #fed7aa; border-radius: 8px; padding: 1rem; margin: 1rem 0; }
+    ul { padding-left: 1.4rem; }
   </style>
 </head>
 <body>
   <h1>Pak Fit Track — Privacy Policy</h1>
-  <p><strong>Last updated:</strong> July 26, 2026</p>
-  <p>Canonical live URL: <a href="https://pak-fit-track-web.web.app/privacy-policy.html">https://pak-fit-track-web.web.app/privacy-policy.html</a></p>
-  <h2>Contact</h2>
-  <p>Email: <a href="mailto:Sajawal0005@gmail.com">Sajawal0005@gmail.com</a></p>
+  <p class="meta"><strong>Last updated:</strong> October 15, 2026</p>
+  <p>Pak Fit Track (“we”, “our”, “the app”) respects your privacy. This policy explains what data we collect, how we use it, and how you can request deletion of your account and data.</p>
+
+  <h2>1. Information we collect</h2>
+  <ul>
+    <li><strong>Account:</strong> email address when you sign in (Firebase Authentication / Google Sign-In)</li>
+    <li><strong>Profile:</strong> name, age, gender, height, weight, goals, diet preferences, body measurements</li>
+    <li><strong>Fitness logs:</strong> food intake, weight, workouts, water intake, and steps (only if you grant permission)</li>
+    <li><strong>Optional analytics:</strong> app opens and feature usage via Firebase Analytics — <em>off by default</em>; you can enable it under Profile → Privacy &amp; data</li>
+  </ul>
+
+  <h2>2. How we use data</h2>
+  <p>We use your data only to provide calorie and nutrition tracking, personalize targets (BMR/TDEE), sync signed-in data across devices, and (if enabled) improve the app.</p>
+
+  <h2>3. Storage &amp; processors</h2>
+  <p>Data is stored on your device (local database). When signed in, it is synced to Google Firebase (Firestore / Authentication) under your account. We do not sell your personal data, we do not share it with advertisers, and the app contains no advertising.</p>
+
+  <h2>4. Permissions</h2>
+  <p>Optional permissions may include activity recognition / step counting and notifications for reminders. You can deny or revoke these in system settings. The app reads step counts from your device's health store (Health Connect); it never writes to or deletes data from it.</p>
+
+  <h2>5. Your choices &amp; account deletion</h2>
+
+  <p>You can request deletion of your account and associated data at any time, using either method below:</p>
+  <ul>
+    <li><strong>In the app:</strong> <strong>Profile → Settings → Delete account</strong>. You will be asked to confirm and to re-authenticate (email/password or Google Sign-In) to verify the request is yours.</li>
+    <li><strong>By email</strong> (if you cannot access the app): email <a href="mailto:Sajawal0005@gmail.com">Sajawal0005@gmail.com</a> from your registered email address with the subject “Account deletion request”. Details are on our <a href="/delete-account.html">account deletion page</a>.</li>
+  </ul>
+
+  <div class="notice">
+    <p><strong>Deletion is a request, not an instant action.</strong> When you submit a request in the app, the app records your request and clears the fitness data stored on that device, then signs you out. Your account and cloud data are <strong>not</strong> deleted at that moment. Each request is reviewed and processed <strong>manually by an administrator</strong>.</p>
+  </div>
+
+  <h3>5.1 What is deleted once your request is processed</h3>
+  <ul>
+    <li>Your Firebase Authentication account (email/password or Google sign-in), so it can no longer be used to sign in.</li>
+    <li>Your cloud profile: name, email, age, gender, height, weight, goals, diet preferences, calculated targets, and body measurements.</li>
+    <li>Your food, weight, and activity logs stored in the cloud under your account.</li>
+    <li>The deletion request record itself, after processing.</li>
+  </ul>
+
+  <h3>5.2 What is cleared on your device when you submit the request</h3>
+  <ul>
+    <li>Your local profile and your food, weight, activity, and water logs.</li>
+    <li>Your local step history and app settings (for example: analytics preference, weight unit, step-tracking toggle).</li>
+    <li>Notification history and any notifications scheduled by the app.</li>
+  </ul>
+
+  <h3>5.3 What may remain after deletion, and why</h3>
+  <ul>
+    <li><strong>Data on your other devices:</strong> the app cannot remotely wipe other phones. After your account is deleted, those copies can no longer sync; remove them by uninstalling the app or clearing its data on each device.</li>
+    <li><strong>Deletion request record:</strong> kept only until your request is processed, as a record that the request was received.</li>
+    <li><strong>Analytics events:</strong> if you had enabled Firebase Analytics, events already collected are general app-usage records that are not linked to your account; they are retained by Google Analytics according to its retention settings. Turning analytics off (Profile → Privacy &amp; data) stops further collection.</li>
+    <li><strong>Health store data:</strong> step data lives in your device's health store (Health Connect). The app only reads it and never deletes it.</li>
+    <li><strong>Google account:</strong> deleting your Pak Fit Track account does not delete your Google account or the Google data held by Google.</li>
+  </ul>
+
+  <h3>5.4 Processing time</h3>
+  <!-- OWNER ACTION BEFORE DEPLOYING: confirm a realistic processing timeframe with the app owner and replace the bracketed placeholder below. Do not publish a deadline that has not been confirmed. -->
+  <p>Deletion requests are processed manually, in the order received. Our target is to complete valid requests within <strong>[PLACEHOLDER — APP OWNER TO CONFIRM, e.g. “7 days”]</strong> of receipt. You will not be able to sign in once your account has been deleted.</p>
+
+  <h3>5.5 If we cannot process your request / how to follow up</h3>
+  <p>If we cannot verify that a request comes from the account owner — for example, if we cannot reach you at your registered email address — we will reply to that address asking for confirmation, and the request stays pending until ownership is confirmed. If you need to follow up at any time, email <a href="mailto:Sajawal0005@gmail.com">Sajawal0005@gmail.com</a> from your registered email address and mention the date you submitted the request.</p>
+
+  <p><strong>Please note:</strong> signing out of the app does <em>not</em> delete your data. Your data stays on your device and in your account until you submit an account deletion request or uninstall the app.</p>
+
+  <h2>6. Children</h2>
+  <p>The app is not directed at children under 13. Do not create an account if you are under the applicable age in your region.</p>
+
+  <h2>7. Health disclaimer</h2>
+  <p>Pak Fit Track provides general fitness and nutrition information for educational purposes only. It is not a medical device and does not provide medical advice, diagnosis, or treatment.</p>
+
+  <h2>8. Contact</h2>
+  <p>Questions about this policy, your data, or a deletion request:<br />
+  Email: <a href="mailto:Sajawal0005@gmail.com">Sajawal0005@gmail.com</a></p>
+  <p>Account &amp; data deletion page: <a href="/delete-account.html">pak-fit-track-web.web.app/delete-account.html</a></p>
 </body>
 </html>

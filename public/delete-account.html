@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Pak Fit Track — Delete Account</title>
+  <style>
+    body { font-family: system-ui, -apple-system, Segoe UI, sans-serif; max-width: 720px; margin: 2rem auto; padding: 0 1.25rem 3rem; line-height: 1.65; color: #1a1a1a; }
+    h1 { font-size: 1.6rem; margin-bottom: 0.25rem; color: #dc2626; }
+    h2 { font-size: 1.15rem; margin-top: 1.75rem; }
+    h3 { font-size: 1rem; margin-top: 1.25rem; }
+    a { color: #16a34a; }
+    .meta { color: #666; font-size: 0.95rem; }
+    .warning { background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 1rem; margin: 1rem 0; }
+    .steps { background: #f9f9f9; padding: 1rem; border-radius: 8px; margin: 1rem 0; }
+    .steps ol { padding-left: 1.5rem; }
+    .steps li { margin-bottom: 0.5rem; }
+    .contact { background: #f9f9f9; padding: 1rem; border-radius: 8px; margin: 1rem 0; }
+    ul { padding-left: 1.4rem; }
+  </style>
+</head>
+<body>
+  <h1>Delete Your Pak Fit Track Account</h1>
+  <p class="meta"><strong>App:</strong> Pak Fit Track (<strong>Package:</strong> com.pakfittrack.app)</p>
+
+  <div class="warning">
+    <p><strong>Account deletion is a request, not an instant action.</strong></p>
+    <p>Submitting a request records your request and clears the fitness data stored on the device where you submit it. Your account and cloud data are <strong>not</strong> deleted at that moment. An administrator manually reviews and processes every request.</p>
+  </div>
+
+  <h2>How to Request Account Deletion</h2>
+
+  <h3>Option 1: In the app (recommended)</h3>
+  <div class="steps">
+    <ol>
+      <li>Open the Pak Fit Track app and go to <strong>Profile</strong>.</li>
+      <li>Under Settings, tap <strong>Delete account</strong>.</li>
+      <li>Read the confirmation message and tap <strong>Submit Request</strong>.</li>
+      <li>Re-authenticate with your email/password or Google Sign-In to verify the request is yours.</li>
+      <li>Your deletion request is recorded. You are signed out, and the fitness data stored on that device is cleared.</li>
+    </ol>
+  </div>
+
+  <h3>Option 2: By email (if you cannot access the app)</h3>
+  <p>Send an email to <a href="mailto:Sajawal0005@gmail.com?subject=Account%20deletion%20request">Sajawal0005@gmail.com</a> with the subject <strong>“Account deletion request”</strong> and include:</p>
+  <ul>
+    <li>The email address you used to register (so we can locate your account), and</li>
+    <li>Optionally, the date you last used the app.</li>
+  </ul>
+  <p>We will process requests received by email the same way as in-app requests. We may ask you to confirm your request from that same email address before we delete anything, to protect your account from misuse.</p>
+
+  <h2>What Happens After You Request Deletion</h2>
+  <div class="steps">
+    <ol>
+      <li>Your request is recorded (for in-app requests, a request record is stored in secure cloud storage under your account).</li>
+      <li>An administrator manually reviews the request and verifies ownership.</li>
+      <li>Your <strong>Firebase Authentication account is deleted</strong>, so it can no longer be used to sign in.</li>
+      <li>Your <strong>cloud profile and logs are deleted</strong>: profile (name, age, gender, height, weight, goals, diet preferences, measurements, calculated targets) and your food, weight, and activity logs.</li>
+      <li>The request record itself is removed after processing.</li>
+    </ol>
+  </div>
+
+  <h3>Processing time</h3>
+  <!-- OWNER ACTION BEFORE DEPLOYING: confirm a realistic processing timeframe with the app owner and replace the bracketed placeholder below. Do not publish a deadline that has not been confirmed. -->
+  <p>Requests are processed manually, in the order received. Our target is to complete valid requests within <strong>[PLACEHOLDER — APP OWNER TO CONFIRM]</strong> of receipt.</p>
+
+  <h2>What Is Cleared on Your Device When You Submit the Request</h2>
+  <ul>
+    <li>Your local profile and your food, weight, activity, and water logs.</li>
+    <li>Your local step history and app settings (analytics preference, weight unit, step-tracking toggle).</li>
+    <li>Notification history and notifications scheduled by the app.</li>
+  </ul>
+  <p>Signing out of the app by itself does <strong>not</strong> delete anything — data stays on the device and in your account until you submit a deletion request or uninstall the app.</p>
+
+  <h2>Data That May Be Retained (and why)</h2>
+  <ul>
+    <li><strong>Data on your other devices</strong> — the app cannot remotely wipe other phones. After your account is deleted, those copies can no longer sync; remove them by uninstalling the app or clearing its app data on each device.</li>
+    <li><strong>Deletion request record</strong> — kept only until your request is processed, as a record that the request was received.</li>
+    <li><strong>Analytics events</strong> — if you had enabled Firebase Analytics, events already collected are general app-usage records not linked to your account; they are retained by Google Analytics according to its retention settings.</li>
+    <li><strong>Health store data</strong> — step data lives in your device's health store (Health Connect). The app only reads it and never deletes it.</li>
+    <li><strong>Google account</strong> — deleting your Pak Fit Track account does not delete your Google account or Google's own records.</li>
+  </ul>
+
+  <h2>If We Cannot Process Your Request</h2>
+  <p>If we cannot verify that the request comes from the account owner — for example, if we cannot reach you at your registered email address — we will reply asking for confirmation, and the request stays pending until ownership is confirmed.</p>
+
+  <h2>Follow Up / Questions</h2>
+  <div class="contact">
+    <strong>Email:</strong> <a href="mailto:Sajawal0005@gmail.com">Sajawal0005@gmail.com</a> — always write from your registered email address and mention the date you submitted the request.<br>
+    <strong>Privacy Policy:</strong> <a href="/privacy-policy.html">pak-fit-track-web.web.app/privacy-policy.html</a>
+  </div>
+</body>
+</html>

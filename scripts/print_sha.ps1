@@ -6,67 +6,49 @@ Write-Host "====================================================" -ForegroundCol
 Write-Host "  PakFitTrack - Firebase SHA Fingerprint Extractor  " -ForegroundColor Cyan
 Write-Host "====================================================" -ForegroundColor Cyan
 Write-Host ""
+Write-Host "Package: com.pakfittrack.app" -ForegroundColor White
+Write-Host "Add fingerprints in Firebase → Android app com.pakfittrack.app" -ForegroundColor White
+Write-Host ""
 
 # 1. DEBUG SHA-1
-Write-Host "1. DEBUG SHA-1 (from Android debug.keystore)" -ForegroundColor Yellow
-
+Write-Host "1. DEBUG SHA-1 (flutter run / debug APK)" -ForegroundColor Yellow
 $debugKeystore = "$env:USERPROFILE\.android\debug.keystore"
-
 if (Test-Path $debugKeystore) {
     $output = & keytool -list -v -keystore $debugKeystore -alias androiddebugkey -storepass android -keypass android 2>&1
-    $sha1Line = $output | Where-Object { $_ -match "SHA1:" } | Select-Object -First 1
-    if ($sha1Line) {
-        Write-Host "   $sha1Line" -ForegroundColor Green
-    }
+    $sha1 = ($output | Where-Object { $_ -match "SHA1:" } | Select-Object -First 1) -replace '.*SHA1:\s*',''
+    $sha256 = ($output | Where-Object { $_ -match "SHA256:" } | Select-Object -First 1) -replace '.*SHA256:\s*',''
+    Write-Host "   SHA-1:   $sha1" -ForegroundColor Green
+    Write-Host "   SHA-256: $sha256" -ForegroundColor Green
 } else {
-    Write-Host "   [WARN] debug.keystore not found. Run: flutter build apk --debug first." -ForegroundColor Red
+    Write-Host "   [WARN] debug.keystore not found." -ForegroundColor Red
 }
 
 Write-Host ""
 
-# 2. RELEASE SHA-1
-Write-Host "2. RELEASE SHA-1 (from your release keystore)" -ForegroundColor Yellow
-
-$keystorePaths = @(
-    "android\app\pakfittrack-release.jks",
-    "android\app\release.jks",
-    "android\app\keystore.jks",
-    "android\app\key.jks"
-)
-
-$foundKeystore = $null
-foreach ($p in $keystorePaths) {
-    if (Test-Path $p) { $foundKeystore = $p; break }
-}
-
-if ($foundKeystore) {
-    $alias = Read-Host "   Found keystore at $foundKeystore. Enter key alias"
-    $output = & keytool -list -v -keystore $foundKeystore -alias $alias 2>&1
-    $sha1Line = $output | Where-Object { $_ -match "SHA1:" } | Select-Object -First 1
-    if ($sha1Line) {
-        Write-Host "   RELEASE SHA-1: $sha1Line" -ForegroundColor Green
+# 2. UPLOAD / RELEASE SHA-1
+Write-Host "2. UPLOAD/RELEASE SHA-1 (appbundle --release)" -ForegroundColor Yellow
+$uploadKs = "android\upload-keystore.jks"
+$keyProps = "android\key.properties"
+if ((Test-Path $uploadKs) -and (Test-Path $keyProps)) {
+    $props = @{}
+    Get-Content $keyProps | ForEach-Object {
+        if ($_ -match '^\s*([^#=]+)=(.*)$') { $props[$matches[1].Trim()] = $matches[2].Trim() }
     }
+    $alias = $props['keyAlias']
+    $pass = $props['storePassword']
+    $output = & keytool -list -v -keystore $uploadKs -alias $alias -storepass $pass -keypass $pass 2>&1
+    $sha1 = ($output | Where-Object { $_ -match "SHA1:" } | Select-Object -First 1) -replace '.*SHA1:\s*',''
+    $sha256 = ($output | Where-Object { $_ -match "SHA256:" } | Select-Object -First 1) -replace '.*SHA256:\s*',''
+    Write-Host "   SHA-1:   $sha1" -ForegroundColor Green
+    Write-Host "   SHA-256: $sha256" -ForegroundColor Green
 } else {
-    Write-Host "   [INFO] No release keystore found in android\app\" -ForegroundColor DarkYellow
-    Write-Host "   When ready, run manually:" -ForegroundColor Gray
-    Write-Host "   keytool -list -v -keystore android\app\YOUR_KEY.jks -alias YOUR_ALIAS" -ForegroundColor White
+    Write-Host "   [INFO] upload-keystore.jks / key.properties not found" -ForegroundColor DarkYellow
 }
 
 Write-Host ""
-
-# 3. PLAY APP SIGNING SHA-1
-Write-Host "3. PLAY APP SIGNING SHA-1 (from Google Play Console)" -ForegroundColor Yellow
-Write-Host "   Cannot be extracted locally. Steps:" -ForegroundColor Gray
-Write-Host "   a) Upload AAB to Play Console (Internal Testing track)" -ForegroundColor White
-Write-Host "   b) Go to: Release > Setup > App Integrity > App Signing" -ForegroundColor White
-Write-Host "   c) Copy the SHA-1 certificate fingerprint shown there" -ForegroundColor White
-Write-Host "   d) Add it to: Firebase Console > Project Settings >" -ForegroundColor White
-Write-Host "      com.pakfittrack.app > SHA certificate fingerprints" -ForegroundColor White
+Write-Host "3. PLAY APP SIGNING SHA-1 -- after first Play upload:" -ForegroundColor Yellow
+Write-Host "   Play Console -> App signing -> App signing key certificate -> SHA-1" -ForegroundColor White
 Write-Host ""
-Write-Host "   WHY: Google re-signs your AAB with their key." -ForegroundColor DarkYellow
-Write-Host "   Without this, Google Sign-In FAILS silently in production." -ForegroundColor Red
-Write-Host ""
-Write-Host "====================================================" -ForegroundColor Cyan
-Write-Host "  Add all SHA-1s to Firebase before release!" -ForegroundColor Cyan
-Write-Host "====================================================" -ForegroundColor Cyan
+Write-Host "After adding SHA-1 in Firebase, download NEW google-services.json" -ForegroundColor Cyan
+Write-Host "and replace android\app\google-services.json, then rebuild." -ForegroundColor Cyan
 Write-Host ""

@@ -14,7 +14,7 @@ Full Play readiness guide: **`docs/PLAY_STORE_READY.md`**
 ## Play Store checklist
 
 1. **SHA fingerprints** — `docs/SHA_FINGERPRINTS.md` + `.\scripts\print_sha.ps1`
-2. **Firebase** — `com.pakfittrack.app`, `google-services.json`, Delete User Data extension
+2. **Firebase** — `com.pakfittrack.app`, `google-services.json`, deletion request via `deletionRequests/{uid}`
 3. **App Check** — Enforce Firestore in Console — `docs/FIREBASE_APP_CHECK.md`
 4. **Hosting (legal pages)** — `firebase deploy --only hosting --project pak-fit-track-web`
 5. **Data Safety** — `docs/DATA_SAFETY_PLAY_CONSOLE.md` (analytics optional, default off)
@@ -35,4 +35,4 @@ flutter build appbundle --release
 
 ## Account deletion
 
-Profile → Delete account (removes Firebase Auth user, Firestore data, and local logs).
+Profile → Settings → Delete account — submits a **deletion request** (`deletionRequests/{uid}`), clears the user's local logs, and signs the user out. The Firebase Auth user and Firestore data are **not** deleted by the app; an administrator processes each request manually per `docs/ACCOUNT_DELETION.md`.

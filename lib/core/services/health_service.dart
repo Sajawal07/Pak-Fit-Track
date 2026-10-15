@@ -65,6 +65,22 @@ class HealthService {
     }
   }
 
+  /// Read today's steps without showing permission UI (for background reports).
+  Future<int> getTodayStepsQuiet() async {
+    try {
+      final now = DateTime.now();
+      final startOfDay = DateTime(now.year, now.month, now.day);
+      final types = [HealthDataType.STEPS];
+      final hasPerms = await _health.hasPermissions(types) ?? false;
+      if (!hasPerms) return 0;
+      final steps = await _health.getTotalStepsInInterval(startOfDay, now);
+      return steps ?? 0;
+    } catch (e) {
+      debugPrint('Error getting today steps (quiet): $e');
+      return 0;
+    }
+  }
+
   Future<int> getStepsForDate(DateTime date) async {
     try {
       final startOfDay = DateTime(date.year, date.month, date.day);

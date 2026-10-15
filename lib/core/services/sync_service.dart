@@ -240,12 +240,14 @@ class SyncService {
     _periodicSyncTimer = null;
   }
 
-  /// Debounces sync requests. After the timer fires we process the persistent queue.
+  /// Debounces sync requests. After the timer fires we process the persistent
+  /// queue and also run a profile/logs batch sync.
   void requestSync() {
     if (!firebaseAvailable) return;
     _debounceTimer?.cancel();
     _debounceTimer = Timer(const Duration(seconds: 15), () async {
       await _processQueue();
+      await _performSyncBatch();
     });
   }
 
@@ -271,37 +273,56 @@ class SyncService {
   Future<void> _syncUserProfile(String uid) async {
     final db = _db;
     if (db == null) return;
-    final localProfile = await _isar.userProfiles
+
+    final docRef = db.collection('users').doc(uid);
+    DocumentSnapshot? docSnap;
+    try {
+      docSnap = await docRef.get();
+    } catch (e) {
+      debugPrint('[Sync] Profile fetch failed: $e');
+      return;
+    }
+
+    var localProfile = await _isar.userProfiles
         .filter()
         .uidEqualTo(uid)
         .findFirst();
-    if (localProfile == null) return;
 
-    final docRef = db.collection('users').doc(uid);
-    final docSnap = await docRef.get();
+    // Reinstall / fresh device: no local row — restore from cloud if present.
+    if (localProfile == null) {
+      final remote = docSnap.data() as Map<String, dynamic>?;
+      if (docSnap.exists && remote != null) {
+        final restored = UserProfile()..uid = uid;
+        _applyRemoteFields(restored, remote);
+        await _isar.writeTxn(() async {
+          await _isar.userProfiles.put(restored);
+        });
+        debugPrint(
+            '[Sync] Restored profile from cloud (onboardingComplete=${restored.onboardingComplete})');
+      }
+      return;
+    }
 
     bool pushToRemote = true;
-    if (docSnap.exists) {
-      final remoteData = docSnap.data()!;
+    final remoteData = docSnap.data() as Map<String, dynamic>?;
+    if (docSnap.exists && remoteData != null) {
       final remoteUpdatedAt =
           (remoteData['updatedAt'] as Timestamp?)?.toDate();
 
-      // Remote Wins if timestamp is newer
+      // Remote wins if newer — full field restore for returning users.
       if (remoteUpdatedAt != null &&
           remoteUpdatedAt.isAfter(localProfile.updatedAt)) {
         await _isar.writeTxn(() async {
-          localProfile
-            ..name = remoteData['name'] ?? localProfile.name
-            ..weight =
-                remoteData['weight']?.toDouble() ?? localProfile.weight
-            ..goalWeight = remoteData['goalWeight']?.toDouble()
-            ..waistCm = remoteData['waistCm']?.toDouble()
-            ..neckCm = remoteData['neckCm']?.toDouble()
-            ..hipCm = remoteData['hipCm']?.toDouble()
-            ..sleepHours = remoteData['sleepHours'] ?? localProfile.sleepHours
-            ..dailyStepEstimate = remoteData['dailyStepEstimate'] ?? localProfile.dailyStepEstimate
-            ..onboardingComplete = remoteData['onboardingComplete'] ?? localProfile.onboardingComplete
-            ..updatedAt = remoteUpdatedAt;
+          _applyRemoteFields(localProfile!, remoteData);
+          localProfile.updatedAt = remoteUpdatedAt;
+          await _isar.userProfiles.put(localProfile);
+        });
+        pushToRemote = false;
+      } else if ((remoteData['onboardingComplete'] == true) &&
+          !localProfile.onboardingComplete) {
+        // Local incomplete but cloud completed (e.g. reinstall).
+        await _isar.writeTxn(() async {
+          _applyRemoteFields(localProfile!, remoteData);
           await _isar.userProfiles.put(localProfile);
         });
         pushToRemote = false;
@@ -309,32 +330,143 @@ class SyncService {
     }
 
     if (pushToRemote) {
-      await docRef.set({
-        'name': localProfile.name,
-        'email': localProfile.email,
-        'gender': localProfile.gender.name,
-        'age': localProfile.age,
-        'weight': localProfile.weight,
-        'height': localProfile.height,
-        'goalWeight': localProfile.goalWeight,
-        'activityLevel': localProfile.activityLevel.name,
-        'goal': localProfile.goal.name,
-        'dietPreference': localProfile.dietPreference.name,
-        'bmr': localProfile.bmr,
-        'tdee': localProfile.tdee,
-        'dailyCalorieTarget': localProfile.dailyCalorieTarget,
-        'dailyProteinTarget': localProfile.dailyProteinTarget,
-        'dailyCarbsTarget': localProfile.dailyCarbsTarget,
-        'dailyFatTarget': localProfile.dailyFatTarget,
-        'waistCm': localProfile.waistCm,
-        'neckCm': localProfile.neckCm,
-        'hipCm': localProfile.hipCm,
-        'sleepHours': localProfile.sleepHours,
-        'dailyStepEstimate': localProfile.dailyStepEstimate,
-        'onboardingComplete': localProfile.onboardingComplete,
-        'updatedAt': Timestamp.fromDate(localProfile.updatedAt),
-      }, SetOptions(merge: true));
+      try {
+        await docRef.set(
+          _profileToRemoteMap(localProfile),
+          SetOptions(merge: true),
+        );
+      } catch (e) {
+        debugPrint('[Sync] Profile push failed: $e');
+      }
     }
+  }
+
+  /// Ensures local Isar has the user's profile, restoring from Firestore when
+  /// needed (reinstall / clear data). Call before routing to onboarding.
+  Future<UserProfile?> ensureUserProfile(String uid) async {
+    if (uid.isEmpty) return null;
+    try {
+      await _syncUserProfile(uid);
+    } catch (e) {
+      debugPrint('[Sync] ensureUserProfile failed: $e');
+    }
+    return _isar.userProfiles.filter().uidEqualTo(uid).findFirst();
+  }
+
+  /// Immediately push local profile to Firestore (after onboarding / edit).
+  Future<void> pushUserProfileNow(String uid) async {
+    final db = _db;
+    if (db == null || uid.isEmpty) return;
+    final localProfile = await _isar.userProfiles
+        .filter()
+        .uidEqualTo(uid)
+        .findFirst();
+    if (localProfile == null) return;
+    try {
+      await db.collection('users').doc(uid).set(
+            _profileToRemoteMap(localProfile),
+            SetOptions(merge: true),
+          );
+      debugPrint('[Sync] Profile pushed for uid=$uid');
+    } catch (e) {
+      debugPrint('[Sync] pushUserProfileNow failed: $e');
+    }
+  }
+
+  void _applyRemoteFields(UserProfile profile, Map<String, dynamic> remote) {
+    profile
+      ..name = (remote['name'] as String?)?.trim().isNotEmpty == true
+          ? remote['name'] as String
+          : profile.name
+      ..email = (remote['email'] as String?) ?? profile.email
+      ..age = (remote['age'] as num?)?.toInt() ?? profile.age
+      ..weight = (remote['weight'] as num?)?.toDouble() ?? profile.weight
+      ..height = (remote['height'] as num?)?.toDouble() ?? profile.height
+      ..goalWeight = (remote['goalWeight'] as num?)?.toDouble() ?? profile.goalWeight
+      ..bmr = (remote['bmr'] as num?)?.toDouble() ?? profile.bmr
+      ..tdee = (remote['tdee'] as num?)?.toDouble() ?? profile.tdee
+      ..dailyCalorieTarget =
+          (remote['dailyCalorieTarget'] as num?)?.toInt() ??
+              profile.dailyCalorieTarget
+      ..dailyProteinTarget =
+          (remote['dailyProteinTarget'] as num?)?.toInt() ??
+              profile.dailyProteinTarget
+      ..dailyCarbsTarget =
+          (remote['dailyCarbsTarget'] as num?)?.toInt() ??
+              profile.dailyCarbsTarget
+      ..dailyFatTarget =
+          (remote['dailyFatTarget'] as num?)?.toInt() ?? profile.dailyFatTarget
+      ..waistCm = (remote['waistCm'] as num?)?.toDouble() ?? profile.waistCm
+      ..neckCm = (remote['neckCm'] as num?)?.toDouble() ?? profile.neckCm
+      ..hipCm = (remote['hipCm'] as num?)?.toDouble() ?? profile.hipCm
+      ..sleepHours =
+          (remote['sleepHours'] as num?)?.toInt() ?? profile.sleepHours
+      ..dailyStepEstimate =
+          (remote['dailyStepEstimate'] as num?)?.toInt() ??
+              profile.dailyStepEstimate
+      ..onboardingComplete =
+          remote['onboardingComplete'] as bool? ?? profile.onboardingComplete
+      ..isGuest = false;
+
+    final gender = remote['gender'] as String?;
+    if (gender != null) {
+      profile.gender = Gender.values.firstWhere(
+        (e) => e.name == gender,
+        orElse: () => profile.gender,
+      );
+    }
+    final goal = remote['goal'] as String?;
+    if (goal != null) {
+      profile.goal = UserGoal.values.firstWhere(
+        (e) => e.name == goal,
+        orElse: () => profile.goal,
+      );
+    }
+    final activity = remote['activityLevel'] as String?;
+    if (activity != null) {
+      profile.activityLevel = ActivityLevel.values.firstWhere(
+        (e) => e.name == activity,
+        orElse: () => profile.activityLevel,
+      );
+    }
+    final diet = remote['dietPreference'] as String?;
+    if (diet != null) {
+      profile.dietPreference = DietPreference.values.firstWhere(
+        (e) => e.name == diet,
+        orElse: () => profile.dietPreference,
+      );
+    }
+
+    final updatedAt = (remote['updatedAt'] as Timestamp?)?.toDate();
+    if (updatedAt != null) profile.updatedAt = updatedAt;
+  }
+
+  Map<String, dynamic> _profileToRemoteMap(UserProfile localProfile) {
+    return {
+      'name': localProfile.name,
+      'email': localProfile.email,
+      'gender': localProfile.gender.name,
+      'age': localProfile.age,
+      'weight': localProfile.weight,
+      'height': localProfile.height,
+      'goalWeight': localProfile.goalWeight,
+      'activityLevel': localProfile.activityLevel.name,
+      'goal': localProfile.goal.name,
+      'dietPreference': localProfile.dietPreference.name,
+      'bmr': localProfile.bmr,
+      'tdee': localProfile.tdee,
+      'dailyCalorieTarget': localProfile.dailyCalorieTarget,
+      'dailyProteinTarget': localProfile.dailyProteinTarget,
+      'dailyCarbsTarget': localProfile.dailyCarbsTarget,
+      'dailyFatTarget': localProfile.dailyFatTarget,
+      'waistCm': localProfile.waistCm,
+      'neckCm': localProfile.neckCm,
+      'hipCm': localProfile.hipCm,
+      'sleepHours': localProfile.sleepHours,
+      'dailyStepEstimate': localProfile.dailyStepEstimate,
+      'onboardingComplete': localProfile.onboardingComplete,
+      'updatedAt': Timestamp.fromDate(localProfile.updatedAt),
+    };
   }
 
   Future<void> _syncFoodLogs(String uid) async {

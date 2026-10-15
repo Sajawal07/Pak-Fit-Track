@@ -142,8 +142,10 @@ class StepForegroundService : Service(), SensorEventListener {
           // Use last sensor value if available; otherwise keep last computed as yesterday final.
           val lastSensor = prefs.getLastSensorValue().coerceAtLeast(0L)
           finalizePreviousDayAndReset(lastSensor, active, todayIso)
+          prefs.setLastComputedToday(0L)
+          persistDailyMax(todayIso, 0L)
           // Emit updated (reset) today state to Flutter (0 steps) to avoid stale UI.
-          Events.emit(prefs.getLastComputedToday().toInt())
+          Events.emit(0)
         }
         updateNotification(prefs.getLastComputedToday())
       } catch (_: Exception) {}

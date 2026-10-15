@@ -4,7 +4,6 @@ import 'package:flutter_animate/flutter_animate.dart';
 import '../../core/constants/app_colors.dart';
 import '../../providers/activity_weight_provider.dart';
 import '../../core/utils/calorie_calculator.dart';
-import '../../providers/activity_weight_provider.dart';
 import '../../providers/user_provider.dart';
 
 class ActivityScreen extends ConsumerStatefulWidget {

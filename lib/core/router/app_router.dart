@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -19,63 +20,61 @@ import '../../presentation/notifications/notifications_screen.dart';
 import '../../presentation/profile/legal_screen.dart';
 import '../../presentation/profile/data_collection_screen.dart';
 
+/// Stable GoRouter — auth changes refresh redirects without recreating the router
+/// (recreating was resetting navigation to /splash and causing hangs).
 final routerProvider = Provider<GoRouter>((ref) {
-  final authState = ref.watch(authStateProvider);
-  final authBootstrapped = ref.watch(authBootstrapCompleteProvider);
+  final refresh = ValueNotifier<int>(0);
 
-  return GoRouter(
+  ref.listen(authStateProvider, (_, __) => refresh.value++);
+  ref.listen(authBootstrapCompleteProvider, (_, __) => refresh.value++);
+
+  final router = GoRouter(
     initialLocation: '/splash',
-    debugLogDiagnostics: false,
+    debugLogDiagnostics: kDebugMode,
+    refreshListenable: refresh,
     redirect: (context, state) {
       final loc = state.matchedLocation;
-      if (loc == '/splash' ||
-          loc.startsWith('/legal') ||
-          loc == '/privacy-data') {
+      final authState = ref.read(authStateProvider);
+      final authBootstrapped = ref.read(authBootstrapCompleteProvider);
+
+      if (loc.startsWith('/legal') || loc == '/privacy-data') {
         return null;
       }
 
-      // Only block on auth loading during initial bootstrap — not on every rebuild.
-      if (!authBootstrapped && authState.isLoading) return '/splash';
-
-      final user = authState.value;
-      final isLoggedIn = user != null;
-      final isVerified = user?.emailVerified == true;
-
-      // Public routes
-      final isAuthRoute = loc == '/auth';
-      final isVerifyRoute = loc == '/verify-email';
-      final guestAllowed = <String>{
-        '/onboarding',
-        '/dashboard',
-        '/activity',
-        '/analytics',
-        '/weight',
-        '/profile',
-        '/food-search',
-        '/add-food',
-        '/notifications',
-      };
-
-      // If not logged in, block protected routes.
-      if (!isLoggedIn) {
-        if (isAuthRoute) return null;
-        if (isVerifyRoute) return '/auth';
-        // Guest users: full UI access; cloud sync/auth routes remain available separately.
-        if (guestAllowed.contains(loc)) return null;
-        return '/dashboard';
+      // Wait for first auth emission before leaving splash / guarding routes.
+      if (!authBootstrapped || authState.isLoading) {
+        return loc == '/splash' ? null : '/splash';
       }
 
-      // Logged in but not verified: force verification screen.
+      final user = authState.valueOrNull;
+      final isLoggedIn = user != null;
+      final isVerified = user?.emailVerified == true;
+      final isAuthRoute = loc == '/auth';
+      final isVerifyRoute = loc == '/verify-email';
+      final isSplash = loc == '/splash';
+
+      // Not signed in → auth only (no guest access).
+      if (!isLoggedIn) {
+        if (isAuthRoute) return null;
+        // Splash navigates itself after min delay; fall back to auth if still here.
+        if (isSplash) return null;
+        return '/auth';
+      }
+
+      // Signed in, email not verified.
       if (!isVerified) {
         if (isVerifyRoute) return null;
-        // Allow legal screens already handled above.
+        if (isSplash) return null;
         return '/verify-email';
       }
 
-      // Logged in + verified: don't allow auth/verify screens.
+      // Signed in + verified:
+      // Never force /dashboard from here — new users must complete onboarding
+      // ("Tell us about yourself") first. Splash / AuthScreen decide the target.
       if (isAuthRoute || isVerifyRoute) {
-        return '/dashboard';
+        return null;
       }
+      if (isSplash) return null;
 
       return null;
     },
@@ -161,4 +160,11 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
     ],
   );
+
+  ref.onDispose(() {
+    router.dispose();
+    refresh.dispose();
+  });
+
+  return router;
 });

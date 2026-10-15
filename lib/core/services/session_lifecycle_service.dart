@@ -32,7 +32,7 @@ class SessionLifecycleService {
     _invalidateUserScopedProviders();
   }
 
-  /// Restores services after a successful sign-in or guest continuation.
+  /// Restores services after a successful sign-in.
   Future<void> onSignedIn() async {
     debugPrint('[SessionLifecycle] Session established — refreshing providers');
 

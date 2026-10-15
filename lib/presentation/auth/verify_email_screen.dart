@@ -8,7 +8,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/prefs_keys.dart';
 import '../../providers/auth_provider.dart';
-import '../../data/repositories/user_repository.dart';
+import '../../core/services/sync_service.dart';
 import '../../main.dart';
 
 class VerifyEmailScreen extends ConsumerStatefulWidget {
@@ -148,8 +148,9 @@ class _VerifyEmailScreenState extends ConsumerState<VerifyEmailScreen> {
       final refreshed = auth?.currentUser;
       if (refreshed?.emailVerified == true) {
         // Proceed to app (onboarding or dashboard).
-        final profile =
-            await ref.read(userRepositoryProvider).getProfile(refreshed!.uid);
+        final profile = await ref
+            .read(syncServiceProvider)
+            .ensureUserProfile(refreshed!.uid);
         if (!mounted) return;
         if (profile?.onboardingComplete == true) {
           context.go('/dashboard');

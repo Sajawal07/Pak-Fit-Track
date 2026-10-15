@@ -8,6 +8,8 @@ import '../../data/repositories/user_repository.dart';
 import '../../data/repositories/water_repository.dart';
 import '../../data/repositories/weight_activity_repository.dart';
 import '../utils/date_helper.dart';
+import 'health_service.dart';
+import 'step_tracker_service.dart';
 import 'steps_native_store.dart';
 
 /// Authoritative daily metrics for notifications — reads Isar + native store
@@ -69,9 +71,8 @@ class DailyReportDataService {
     }
 
     final today = DateHelper.today;
-    final stepGoal = profile.dailyStepEstimate > 0
-        ? profile.dailyStepEstimate
-        : 8000;
+    final stepGoal =
+        profile.dailyStepEstimate > 0 ? profile.dailyStepEstimate : 8000;
     final calorieTarget =
         profile.dailyCalorieTarget > 0 ? profile.dailyCalorieTarget : 1800;
 
@@ -92,21 +93,13 @@ class DailyReportDataService {
       }
     }
 
-    // Steps: native Room store (Android) → Isar activity log fallback.
-    var steps = 0;
-    try {
-      steps = await NativeStepsStore().getTodaySteps();
-    } catch (_) {}
-    if (steps <= 0) {
+    final steps = await _resolveTodaySteps(uid);
+    // Keep Isar in sync so history / next report have the same number.
+    if (steps > 0) {
       try {
-        final activityRepo = _ref.read(activityRepositoryProvider);
-        final logs = await activityRepo.getLogsForDate(uid, today);
-        final stepLogs =
-            logs.where((l) => l.activityType == ActivityType.steps).toList();
-        if (stepLogs.isNotEmpty) {
-          stepLogs.sort((a, b) => b.loggedAt.compareTo(a.loggedAt));
-          steps = stepLogs.first.steps;
-        }
+        await _ref
+            .read(activityRepositoryProvider)
+            .updateOrCreateStepLog(uid, steps);
       } catch (_) {}
     }
 
@@ -152,7 +145,8 @@ class DailyReportDataService {
     try {
       final weightRepo = _ref.read(weightRepositoryProvider);
       final latest = await weightRepo.getLatestWeight(uid);
-      latestWeight = latest?.weight ?? (profile.weight > 0 ? profile.weight : null);
+      latestWeight =
+          latest?.weight ?? (profile.weight > 0 ? profile.weight : null);
     } catch (_) {
       latestWeight = profile.weight > 0 ? profile.weight : null;
     }
@@ -163,17 +157,24 @@ class DailyReportDataService {
     try {
       final now = DateTime.now();
       final start = now.subtract(const Duration(days: 7));
-      String iso(DateTime d) =>
-          '${d.year.toString().padLeft(4, '0')}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
       final range = await NativeStepsStore().getStepsRange(
-        startDateIso: iso(start),
-        endDateIso: iso(now),
+        startDateIso: _iso(start),
+        endDateIso: _iso(now),
       );
-      final todayIso = iso(now);
+      final todayIso = _iso(now);
       for (final e in range.entries) {
         if (e.key == todayIso) continue;
         if (e.value > bestPrev7DaySteps) bestPrev7DaySteps = e.value;
       }
+      // Also check Isar history for weekly best.
+      try {
+        final activityRepo = _ref.read(activityRepositoryProvider);
+        final week = await activityRepo.getLast7DaysSteps(uid);
+        for (final log in week) {
+          if (DateHelper.isSameDay(log.loggedAt, now)) continue;
+          if (log.steps > bestPrev7DaySteps) bestPrev7DaySteps = log.steps;
+        }
+      } catch (_) {}
       if (bestPrev7DaySteps > 0 && steps > bestPrev7DaySteps) {
         broke7DayRecord = true;
       }
@@ -198,6 +199,41 @@ class DailyReportDataService {
       bestPrev7DaySteps: bestPrev7DaySteps,
     );
   }
+
+  /// Prefer the highest reliable source: native Room/prefs, live sensor,
+  /// Isar step log, then Health Connect (quiet).
+  Future<int> _resolveTodaySteps(String uid) async {
+    final candidates = <int>[];
+
+    try {
+      candidates.add(await NativeStepsStore().getTodaySteps());
+    } catch (e) {
+      debugPrint('[DailyReportData] NativeStepsStore failed: $e');
+    }
+
+    try {
+      candidates.add(_ref.read(stepTrackerServiceProvider).currentSteps);
+    } catch (_) {}
+
+    try {
+      final log =
+          await _ref.read(activityRepositoryProvider).getTodayStepLog(uid);
+      if (log != null) candidates.add(log.steps);
+    } catch (_) {}
+
+    try {
+      candidates
+          .add(await _ref.read(healthServiceProvider).getTodayStepsQuiet());
+    } catch (_) {}
+
+    if (candidates.isEmpty) return 0;
+    final best = candidates.reduce((a, b) => a > b ? a : b);
+    debugPrint('[DailyReportData] steps sources=$candidates → best=$best');
+    return best.clamp(0, 999999);
+  }
+
+  static String _iso(DateTime d) =>
+      '${d.year.toString().padLeft(4, '0')}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
 }
 
 final dailyReportDataServiceProvider = Provider<DailyReportDataService>((ref) {

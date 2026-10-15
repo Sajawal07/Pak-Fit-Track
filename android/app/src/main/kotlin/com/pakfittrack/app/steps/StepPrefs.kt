@@ -36,6 +36,17 @@ internal class StepPrefs(context: Context) {
     prefs.edit().putLong("daily_$dateIso", steps).apply()
   }
 
+  /**
+   * Clears the entire "pakfittrack_steps" prefs file. Every key in this file
+   * belongs to the step tracker (enable flag, sensor baselines, per-day
+   * finalized counts), so a full clear is safe-scoped. Used by the
+   * account-deletion local cleanup. StepComputation re-initialises its
+   * baselines on the next start (baseline < 0 → baseline = sensorValue).
+   */
+  fun clear() {
+    prefs.edit().clear().apply()
+  }
+
   companion object {
     fun todayIso(): String = LocalDate.now().toString() // yyyy-MM-dd
   }

@@ -58,6 +58,10 @@ void main() async {
   // SharedPreferences
   final prefs = await SharedPreferences.getInstance();
 
+  // Purge legacy guest-mode prefs from older installs (guest login removed).
+  await prefs.remove(PrefsKeys.guestUid);
+  await prefs.remove(PrefsKeys.guestImportPromptedForUid);
+
   runApp(
     ProviderScope(
       overrides: [

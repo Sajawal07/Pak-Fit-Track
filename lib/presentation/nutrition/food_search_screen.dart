@@ -65,13 +65,13 @@ class _FoodSearchScreenState extends ConsumerState<FoodSearchScreen> {
             ),
           ),
 
-          // Category chips
+          // Category chips — Drinks early so Halal Drinks is easy to find
           SizedBox(
             height: 40,
             child: ListView(
               scrollDirection: Axis.horizontal,
               padding: const EdgeInsets.symmetric(horizontal: 16),
-              children: FoodCategory.values.map((cat) {
+              children: _chipOrder.map((cat) {
                 final selected =
                     ref.watch(foodSearchCategoryProvider) == cat;
                 return Padding(
@@ -80,15 +80,20 @@ class _FoodSearchScreenState extends ConsumerState<FoodSearchScreen> {
                     label: Text(_catLabel(cat)),
                     selected: selected,
                     onSelected: (_) {
-                      _ctrl.text = _catLabel(cat);
-                      ref.read(foodSearchQueryProvider.notifier).state =
-                          _catLabel(cat);
-                      ref.read(foodSearchCategoryProvider.notifier).state =
-                          selected ? null : cat;
                       if (selected) {
                         _ctrl.clear();
+                        ref.read(foodSearchCategoryProvider.notifier).state =
+                            null;
+                        ref.read(foodSearchQueryProvider.notifier).state = '';
+                      } else {
+                        // Category filter only — keep search box empty so
+                        // typing does not clear the chip mid-filter.
+                        _ctrl.clear();
+                        ref.read(foodSearchCategoryProvider.notifier).state =
+                            cat;
                         ref.read(foodSearchQueryProvider.notifier).state = '';
                       }
+                      setState(() {});
                     },
                   ),
                 );
@@ -178,6 +183,26 @@ class _FoodSearchScreenState extends ConsumerState<FoodSearchScreen> {
     );
   }
 
+  /// Popular chips first — Halal Drinks near the start.
+  static const _chipOrder = [
+    FoodCategory.beverages,
+    FoodCategory.bread,
+    FoodCategory.rice,
+    FoodCategory.chicken,
+    FoodCategory.beef,
+    FoodCategory.mutton,
+    FoodCategory.fish,
+    FoodCategory.lentils,
+    FoodCategory.vegetables,
+    FoodCategory.dairy,
+    FoodCategory.fruits,
+    FoodCategory.fastFood,
+    FoodCategory.snacks,
+    FoodCategory.desserts,
+    FoodCategory.oils,
+    FoodCategory.other,
+  ];
+
   String _catLabel(FoodCategory cat) {
     switch (cat) {
       case FoodCategory.bread: return 'Roti/Bread';
@@ -191,7 +216,7 @@ class _FoodSearchScreenState extends ConsumerState<FoodSearchScreen> {
       case FoodCategory.dairy: return 'Dairy/Eggs';
       case FoodCategory.snacks: return 'Snacks';
       case FoodCategory.fruits: return 'Fruits';
-      case FoodCategory.beverages: return 'Beverages';
+      case FoodCategory.beverages: return 'Halal Drinks';
       case FoodCategory.desserts: return 'Desserts';
       case FoodCategory.oils: return 'Oils';
       case FoodCategory.fastFood: return 'Fast Food';
@@ -354,7 +379,7 @@ class _FoodTile extends StatelessWidget {
       case FoodCategory.dairy: return '🥛';
       case FoodCategory.snacks: return '🥪';
       case FoodCategory.fruits: return '🍎';
-      case FoodCategory.beverages: return '☕';
+      case FoodCategory.beverages: return '🥤';
       case FoodCategory.desserts: return '🍮';
       case FoodCategory.oils: return '🫙';
       case FoodCategory.fastFood: return '🍔';

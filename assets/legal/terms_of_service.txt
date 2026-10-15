@@ -1,14 +1,30 @@
 Pak Fit Track — Terms of Service
-Last updated: May 2026
+Last updated: September 7, 2026
 
 Pak Fit Track is a fitness and nutrition tracking application. By using the app you agree to these terms.
 
-The app provides estimates only and is not medical advice. Consult a healthcare professional for health decisions.
+1. THE SERVICE
+Pak Fit Track is a Pakistan-focused nutrition and fitness tracking application. Features include food logging, calorie targets, weight tracking, and related insights.
 
-You are responsible for keeping your account credentials secure.
+2. MEDICAL DISCLAIMER
+All calorie, BMR, TDEE, BMI, and coaching estimates are approximations for educational use only. The app is NOT a medical device and does NOT provide medical advice, diagnosis, or treatment. Always consult a qualified healthcare professional before starting a diet or exercise program.
 
-You may delete your account and data at any time from Profile → Delete account.
+3. ACCOUNTS
+You are responsible for keeping your login credentials secure. You may request deletion of your account at any time from Profile → Settings → Delete account, or by following the instructions on our web deletion page at https://pak-fit-track-web.web.app/delete-account.html. Deletion requests are processed manually by an administrator.
 
-We may update these terms; continued use after changes means acceptance.
+4. ACCEPTABLE USE
+Do not misuse the service, attempt unauthorized access, or use the app in ways that violate applicable law.
 
-Contact: support@pakfittrack.com
+5. AVAILABILITY
+We aim for reliable service but do not guarantee uninterrupted uptime. We are not liable for incidental data loss beyond what local/cloud sync provides.
+
+6. PRIVACY
+Your use of the app is also governed by our Privacy Policy.
+
+7. DATA DELETION
+You may request deletion of your account and all associated data. Deletion requires an admin to process the request. See https://pak-fit-track-web.web.app/delete-account.html for details.
+
+8. CONTACT
+Email: Sajawal0005@gmail.com
+
+By using the app, you agree to these Terms of Service.

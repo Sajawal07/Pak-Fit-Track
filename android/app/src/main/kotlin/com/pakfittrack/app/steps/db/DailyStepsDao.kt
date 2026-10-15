@@ -15,5 +15,9 @@ interface DailyStepsDao {
 
   @Query("SELECT * FROM daily_steps WHERE dateIso BETWEEN :startIso AND :endIso ORDER BY dateIso ASC")
   fun getRange(startIso: String, endIso: String): List<DailyStepsEntity>
+
+  /** Used by the account-deletion local cleanup ("clearAllData" channel call). */
+  @Query("DELETE FROM daily_steps")
+  fun deleteAll()
 }
 

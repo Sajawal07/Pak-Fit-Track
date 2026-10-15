@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../core/constants/app_colors.dart';
-import '../providers/auth_provider.dart';
+import '../providers/activity_weight_provider.dart';
 
 class MainShell extends ConsumerStatefulWidget {
   final Widget child;
@@ -14,6 +14,7 @@ class MainShell extends ConsumerStatefulWidget {
 
 class _MainShellState extends ConsumerState<MainShell> {
   int _currentIndex = 0;
+  int _lastSavedSteps = -1;
 
   final List<_NavItem> _items = const [
     _NavItem(icon: Icons.home_rounded, label: 'Home', path: '/dashboard'),
@@ -25,29 +26,19 @@ class _MainShellState extends ConsumerState<MainShell> {
 
   @override
   Widget build(BuildContext context) {
-    final isGuest = ref.watch(authStateProvider).value == null;
+    // Persist live steps whenever shell is open (not only on Activity tab),
+    // so daily progress reports can read real counts from Isar.
+    ref.listen<AsyncValue<int>>(liveStepsProvider, (_, next) {
+      next.whenData((steps) {
+        if (steps > 0 && steps != _lastSavedSteps) {
+          _lastSavedSteps = steps;
+          ref.read(activityNotifierProvider.notifier).saveStepCount(steps);
+        }
+      });
+    });
+
     return Scaffold(
-      body: Column(
-        children: [
-          if (isGuest)
-            MaterialBanner(
-              backgroundColor: AppColors.warning.withValues(alpha: 0.12),
-              leading: const Icon(Icons.info_outline, color: AppColors.warning),
-              content: const Text(
-                'You are using Guest Mode. Your data is stored locally only and may be lost. '
-                'Sign in with Google to secure your data.',
-                style: TextStyle(color: AppColors.textPrimary),
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => context.go('/auth'),
-                  child: const Text('Sign in'),
-                ),
-              ],
-            ),
-          Expanded(child: widget.child),
-        ],
-      ),
+      body: widget.child,
       bottomNavigationBar: _buildBottomNav(context),
     );
   }

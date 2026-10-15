@@ -21,7 +21,11 @@ class IntentResolver {
     }
     
     // Common families in Pakistani diet
-    final familyKeywords = ['paratha', 'naan', 'roti', 'chicken', 'beef', 'mutton', 'daal', 'dal', 'rice', 'chawal'];
+    final familyKeywords = [
+      'paratha', 'naan', 'roti', 'chicken', 'beef', 'mutton', 'daal', 'dal',
+      'rice', 'chawal', 'drink', 'drinks', 'cola', 'coke', 'pepsi', 'sprite',
+      'soda', 'juice', 'lassi', 'chai',
+    ];
     for (final kw in familyKeywords) {
       if (q.contains(kw)) {
         return SearchIntent.family;
@@ -60,23 +64,23 @@ class FoodRepository {
 
   Future<void> seedPakistaniFoods() async {
     final foods = PkFoodDatabase.items;
-    // Apply rule-based logging behavior defaults to every seeded food item.
     for (final f in foods) {
       FoodBehaviorRules.applyDefaults(f);
     }
-    
+
     await _db.writeTxn(() async {
       for (final f in foods) {
         if (f.seedId != null) {
-          final existing = await _db.foodItems.filter().seedIdEqualTo(f.seedId!).findFirst();
+          final existing =
+              await _db.foodItems.filter().seedIdEqualTo(f.seedId!).findFirst();
           if (existing != null) {
-            // ONLY OVERWRITE IF SCHEMA IS NEWER
-            if (f.schemaVersion > existing.schemaVersion) {
-               // Preserve user analytics
-               f.id = existing.id;
-               f.dynamicRank = existing.dynamicRank;
-               f.isCustom = existing.isCustom;
-               await _db.foodItems.put(f);
+            final forceSoftDrinkRefresh = f.family == 'soft_drinks';
+            if (f.schemaVersion > existing.schemaVersion ||
+                forceSoftDrinkRefresh) {
+              f.id = existing.id;
+              f.dynamicRank = existing.dynamicRank;
+              f.isCustom = existing.isCustom;
+              await _db.foodItems.put(f);
             }
           } else {
             await _db.foodItems.put(f);
@@ -120,13 +124,28 @@ class FoodRepository {
     }
 
     // Keyword & Family Intents (Fuzzy search)
-    // 1. Exact match or Family match
-    final exactOrFamilyMatches = await _db.foodItems
+    // 1. Exact match or Family match (+ soft drinks family for cola/coke/etc.)
+    final drinkQuery = q.contains('drink') ||
+        q.contains('cola') ||
+        q.contains('coke') ||
+        q.contains('cock') ||
+        q.contains('pepsi') ||
+        q.contains('sprite') ||
+        q.contains('suprit') ||
+        q.contains('soda') ||
+        q.contains('fanta') ||
+        q.contains('7up') ||
+        q.contains('sting');
+
+    var exactOrFamilyQ = _db.foodItems
         .filter()
         .nameEqualTo(query, caseSensitive: false)
         .or()
-        .familyEqualTo(q, caseSensitive: false)
-        .findAll();
+        .familyEqualTo(q, caseSensitive: false);
+    if (drinkQuery) {
+      exactOrFamilyQ = exactOrFamilyQ.or().familyEqualTo('soft_drinks');
+    }
+    final exactOrFamilyMatches = await exactOrFamilyQ.findAll();
 
     // 2. Token match & Phonetic match
     final tokenMatches = await _db.foodItems
