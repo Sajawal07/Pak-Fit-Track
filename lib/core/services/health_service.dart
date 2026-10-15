@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:health/health.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../widgets/permission_rationale_dialog.dart';
@@ -18,7 +17,7 @@ class HealthService {
       if (context != null && context.mounted) {
         final prefs = await SharedPreferences.getInstance();
         final shown = prefs.getBool('steps_permission_rationale_shown') ?? false;
-        if (!shown) {
+        if (!shown && context.mounted) {
           final ok = await showPermissionRationale(
             context,
             title: 'Step tracking',

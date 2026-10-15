@@ -102,7 +102,7 @@ class NotificationsScreen extends ConsumerWidget {
                 const Icon(Icons.error_outline_rounded,
                     color: AppColors.error, size: 48),
                 const SizedBox(height: 16),
-                Text(
+                const Text(
                   'Unable to load notifications',
                   style: TextStyle(
                     color: AppColors.textPrimary,
@@ -150,7 +150,7 @@ class _EmptyState extends StatelessWidget {
               width: 100,
               height: 100,
               decoration: BoxDecoration(
-                color: AppColors.surfaceLight.withOpacity(0.5),
+                color: AppColors.surfaceLight.withValues(alpha: 0.5),
                 shape: BoxShape.circle,
               ),
               child: const Icon(
@@ -245,7 +245,7 @@ class _NotificationCard extends StatelessWidget {
       background: Container(
         margin: const EdgeInsets.only(bottom: 10),
         decoration: BoxDecoration(
-          color: AppColors.error.withOpacity(0.15),
+          color: AppColors.error.withValues(alpha: 0.15),
           borderRadius: BorderRadius.circular(16),
         ),
         alignment: Alignment.centerRight,
@@ -264,7 +264,7 @@ class _NotificationCard extends StatelessWidget {
                 : AppColors.surface,
             borderRadius: BorderRadius.circular(16),
             border: isUnread
-                ? Border.all(color: typeColor.withOpacity(0.3), width: 1)
+                ? Border.all(color: typeColor.withValues(alpha: 0.3), width: 1)
                 : null,
           ),
           child: Row(
@@ -275,7 +275,7 @@ class _NotificationCard extends StatelessWidget {
                 width: 44,
                 height: 44,
                 decoration: BoxDecoration(
-                  color: typeColor.withOpacity(0.15),
+                  color: typeColor.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(_iconForType(notification.type),

@@ -313,7 +313,7 @@ class SyncService {
       if (remoteUpdatedAt != null &&
           remoteUpdatedAt.isAfter(localProfile.updatedAt)) {
         await _isar.writeTxn(() async {
-          _applyRemoteFields(localProfile!, remoteData);
+          _applyRemoteFields(localProfile, remoteData);
           localProfile.updatedAt = remoteUpdatedAt;
           await _isar.userProfiles.put(localProfile);
         });
@@ -322,7 +322,7 @@ class SyncService {
           !localProfile.onboardingComplete) {
         // Local incomplete but cloud completed (e.g. reinstall).
         await _isar.writeTxn(() async {
-          _applyRemoteFields(localProfile!, remoteData);
+          _applyRemoteFields(localProfile, remoteData);
           await _isar.userProfiles.put(localProfile);
         });
         pushToRemote = false;

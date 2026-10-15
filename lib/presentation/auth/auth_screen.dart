@@ -350,11 +350,11 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
 
               const SizedBox(height: 24),
 
-              Row(
+              const Row(
                 children: [
-                  const Expanded(child: Divider()),
+                  Expanded(child: Divider()),
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    padding: EdgeInsets.symmetric(horizontal: 16),
                     child: Text(
                       'OR',
                       style: TextStyle(
@@ -364,7 +364,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                       ),
                     ),
                   ),
-                  const Expanded(child: Divider()),
+                  Expanded(child: Divider()),
                 ],
               ),
 

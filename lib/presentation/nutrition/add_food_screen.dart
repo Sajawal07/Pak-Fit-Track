@@ -162,9 +162,9 @@ class _AddFoodScreenState extends ConsumerState<AddFoodScreen> {
                       color: AppColors.surfaceLight,
                       borderRadius: BorderRadius.circular(16),
                     ),
-                    child: Center(
+                    child: const Center(
                       child: Text('🍽️',
-                          style: const TextStyle(fontSize: 28)),
+                          style: TextStyle(fontSize: 28)),
                     ),
                   ),
                   const SizedBox(width: 16),
@@ -211,7 +211,7 @@ class _AddFoodScreenState extends ConsumerState<AddFoodScreen> {
                     label: Text(
                         '$presetLabel${recommended ? ' (recommended)' : ''}${kcal != null ? ' ($kcal kcal)' : ''}'),
                     selected: selected,
-                    selectedColor: AppColors.primary.withOpacity(0.2),
+                    selectedColor: AppColors.primary.withValues(alpha: 0.2),
                     onSelected: (_) => setState(() {
                       _selectedPreset = p;
                       _servingType = _servingTypeFromUnit(p.unit);
@@ -228,9 +228,9 @@ class _AddFoodScreenState extends ConsumerState<AddFoodScreen> {
             ],
             if (widget.food.inputMode == FoodInputMode.flexible) ...[
               const SizedBox(height: 12),
-              Text(
+              const Text(
                 'Or enter a custom serving below',
-                style: const TextStyle(color: AppColors.textMuted, fontSize: 12),
+                style: TextStyle(color: AppColors.textMuted, fontSize: 12),
               ),
             ],
             if (widget.food.inputMode != FoodInputMode.presetOnly) ...[
@@ -242,7 +242,7 @@ class _AddFoodScreenState extends ConsumerState<AddFoodScreen> {
                   return ChoiceChip(
                     label: Text(_servingLabel(st)),
                     selected: _servingType == st,
-                    selectedColor: AppColors.primary.withOpacity(0.2),
+                    selectedColor: AppColors.primary.withValues(alpha: 0.2),
                     onSelected: (_) => setState(() {
                       _servingType = st;
                       _servingAmount = st == ServingType.gram ? 100 : 1.0;
@@ -322,7 +322,7 @@ class _AddFoodScreenState extends ConsumerState<AddFoodScreen> {
                   return ChoiceChip(
                     label: Text(_cookingLabel(cm)),
                     selected: _cookingMethod == cm,
-                    selectedColor: AppColors.accent.withOpacity(0.2),
+                    selectedColor: AppColors.accent.withValues(alpha: 0.2),
                     onSelected: (_) => setState(() => _cookingMethod = cm),
                     labelStyle: TextStyle(
                       color: _cookingMethod == cm
@@ -395,7 +395,7 @@ class _AddFoodScreenState extends ConsumerState<AddFoodScreen> {
                       padding: const EdgeInsets.symmetric(vertical: 10),
                       decoration: BoxDecoration(
                         color: selected
-                            ? AppColors.primary.withOpacity(0.15)
+                            ? AppColors.primary.withValues(alpha: 0.15)
                             : AppColors.surfaceLight,
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(

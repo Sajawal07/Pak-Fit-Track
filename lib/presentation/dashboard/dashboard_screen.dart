@@ -93,7 +93,7 @@ class DashboardScreen extends ConsumerWidget {
                     margin: const EdgeInsets.only(right: 8),
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
-                      color: AppColors.warning.withOpacity(0.15),
+                      color: AppColors.warning.withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: const Row(
@@ -285,11 +285,11 @@ class _CalorieRingCard extends ConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // 🍽 Intake header
-                    Row(
+                    const Row(
                       children: [
-                        const Text('🍽', style: TextStyle(fontSize: 16)),
-                        const SizedBox(width: 6),
-                        const Text(
+                        Text('🍽', style: TextStyle(fontSize: 16)),
+                        SizedBox(width: 6),
+                        Text(
                           'Intake',
                           style: TextStyle(
                             fontSize: 14,
@@ -636,7 +636,7 @@ class _MacroCard extends StatelessWidget {
         color: AppColors.cardBg,
         borderRadius: BorderRadius.circular(16),
         border: isLow
-            ? Border.all(color: AppColors.warning.withOpacity(0.5), width: 1.5)
+            ? Border.all(color: AppColors.warning.withValues(alpha: 0.5), width: 1.5)
             : null,
       ),
       child: Column(
@@ -705,7 +705,7 @@ class _StepsCard extends StatelessWidget {
             width: 52,
             height: 52,
             decoration: BoxDecoration(
-              color: AppColors.accent.withOpacity(0.15),
+              color: AppColors.accent.withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(14),
             ),
             child: const Icon(Icons.directions_walk_rounded,
@@ -911,7 +911,7 @@ class _WaterIntakeCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.cardBg,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.info.withOpacity(0.3)),
+        border: Border.all(color: AppColors.info.withValues(alpha: 0.3)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -922,7 +922,7 @@ class _WaterIntakeCard extends StatelessWidget {
                 width: 52,
                 height: 52,
                 decoration: BoxDecoration(
-                  color: AppColors.info.withOpacity(0.15),
+                  color: AppColors.info.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(14),
                 ),
                 child: const Icon(Icons.water_drop_rounded,
@@ -967,7 +967,7 @@ class _WaterIntakeCard extends StatelessWidget {
                   ref.read(waterNotifierProvider.notifier).addGlass();
                 },
                 style: IconButton.styleFrom(
-                  backgroundColor: AppColors.info.withOpacity(0.1),
+                  backgroundColor: AppColors.info.withValues(alpha: 0.1),
                 ),
                 icon: const Icon(Icons.add_rounded, color: AppColors.info),
               ),
@@ -989,9 +989,9 @@ class _WaterIntakeCard extends StatelessWidget {
             width: double.infinity,
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: textColor.withOpacity(0.08),
+              color: textColor.withValues(alpha: 0.08),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: textColor.withOpacity(0.15)),
+              border: Border.all(color: textColor.withValues(alpha: 0.15)),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -1073,13 +1073,13 @@ class _TodayLogCard extends ConsumerWidget {
             ],
           ),
           if (logs.isEmpty)
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 16),
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 16),
               child: Center(
                 child: Column(
                   children: [
-                    const Text('🍽️', style: TextStyle(fontSize: 36)),
-                    const SizedBox(height: 8),
+                    Text('🍽️', style: TextStyle(fontSize: 36)),
+                    SizedBox(height: 8),
                     Text(
                       'No food logged yet today',
                       style: TextStyle(color: AppColors.textSecondary),
@@ -1203,23 +1203,23 @@ class _InsightCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final (bg, border, textColor) = switch (insight.type) {
       InsightType.success => (
-          AppColors.success.withOpacity(0.1),
-          AppColors.success.withOpacity(0.3),
+          AppColors.success.withValues(alpha: 0.1),
+          AppColors.success.withValues(alpha: 0.3),
           AppColors.success,
         ),
       InsightType.warning => (
-          AppColors.warning.withOpacity(0.1),
-          AppColors.warning.withOpacity(0.3),
+          AppColors.warning.withValues(alpha: 0.1),
+          AppColors.warning.withValues(alpha: 0.3),
           AppColors.warning,
         ),
       InsightType.danger => (
-          AppColors.error.withOpacity(0.1),
-          AppColors.error.withOpacity(0.3),
+          AppColors.error.withValues(alpha: 0.1),
+          AppColors.error.withValues(alpha: 0.3),
           AppColors.error,
         ),
       InsightType.info => (
-          AppColors.info.withOpacity(0.1),
-          AppColors.info.withOpacity(0.3),
+          AppColors.info.withValues(alpha: 0.1),
+          AppColors.info.withValues(alpha: 0.3),
           AppColors.info,
         ),
     };

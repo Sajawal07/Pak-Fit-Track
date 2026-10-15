@@ -72,7 +72,7 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen> {
             const SizedBox(height: 28),
 
             // ── Log Workout ───────────────────────────────────────────────
-            _SectionHeader(title: 'Log Workout', icon: '🏋️'),
+            const _SectionHeader(title: 'Log Workout', icon: '🏋️'),
             const SizedBox(height: 12),
             _WorkoutForm(
               nameCtrl: _workoutNameCtrl,
@@ -85,12 +85,12 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen> {
             const SizedBox(height: 28),
 
             // ── Today's Workouts ──────────────────────────────────────────
-            _SectionHeader(title: "Today's Workouts", icon: '📋'),
+            const _SectionHeader(title: "Today's Workouts", icon: '📋'),
             const SizedBox(height: 12),
             workoutsAsync.when(
               data: (workouts) {
                 if (workouts.isEmpty) {
-                  return _EmptyState(
+                  return const _EmptyState(
                     emoji: '🏃',
                     message: 'No workouts logged today',
                   );
@@ -176,12 +176,12 @@ class _StepsSection extends StatelessWidget {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            AppColors.accent.withOpacity(0.2),
+            AppColors.accent.withValues(alpha: 0.2),
             AppColors.cardBg,
           ],
         ),
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: AppColors.accent.withOpacity(0.2)),
+        border: Border.all(color: AppColors.accent.withValues(alpha: 0.2)),
       ),
       child: Column(
         children: [
@@ -207,7 +207,7 @@ class _StepsSection extends StatelessWidget {
                 width: 80,
                 height: 80,
                 decoration: BoxDecoration(
-                  color: AppColors.accent.withOpacity(0.15),
+                  color: AppColors.accent.withValues(alpha: 0.15),
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(Icons.directions_walk_rounded,
@@ -353,7 +353,7 @@ class _WorkoutTile extends StatelessWidget {
             width: 44,
             height: 44,
             decoration: BoxDecoration(
-              color: AppColors.primary.withOpacity(0.15),
+              color: AppColors.primary.withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(12),
             ),
             child: const Icon(Icons.fitness_center_rounded,

@@ -262,7 +262,7 @@ class _BasicInfoStepState extends ConsumerState<_BasicInfoStep> {
         padding: const EdgeInsets.symmetric(vertical: 20),
         decoration: BoxDecoration(
           color: selected
-              ? AppColors.primary.withOpacity(0.15)
+              ? AppColors.primary.withValues(alpha: 0.15)
               : AppColors.surfaceLight,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
@@ -564,7 +564,7 @@ class _LifestyleStepState extends ConsumerState<_LifestyleStep> {
                 padding:
                     const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
-                  color: AppColors.primary.withOpacity(0.15),
+                  color: AppColors.primary.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(label,
@@ -655,9 +655,9 @@ class _SummaryStepState extends ConsumerState<_SummaryStep> {
             Container(
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
-                color: AppColors.warning.withOpacity(0.12),
+                color: AppColors.warning.withValues(alpha: 0.12),
                 borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: AppColors.warning.withOpacity(0.35)),
+                border: Border.all(color: AppColors.warning.withValues(alpha: 0.35)),
               ),
               child: const Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -685,9 +685,9 @@ class _SummaryStepState extends ConsumerState<_SummaryStep> {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: AppColors.primary.withOpacity(0.1),
+              color: AppColors.primary.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: AppColors.primary.withOpacity(0.3)),
+              border: Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
             ),
             child: const Row(
               children: [
@@ -835,7 +835,7 @@ Widget _selectionCard({
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color:
-            selected ? AppColors.primary.withOpacity(0.12) : AppColors.cardBg,
+            selected ? AppColors.primary.withValues(alpha: 0.12) : AppColors.cardBg,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: selected ? AppColors.primary : Colors.transparent,

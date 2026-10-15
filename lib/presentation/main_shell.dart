@@ -67,7 +67,7 @@ class _MainShellState extends ConsumerState<MainShell> {
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   decoration: BoxDecoration(
                     color: selected
-                        ? AppColors.primary.withOpacity(0.15)
+                        ? AppColors.primary.withValues(alpha: 0.15)
                         : Colors.transparent,
                     borderRadius: BorderRadius.circular(12),
                   ),

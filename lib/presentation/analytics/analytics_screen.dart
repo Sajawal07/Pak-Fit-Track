@@ -136,12 +136,12 @@ class _ConsistencyCard extends StatelessWidget {
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [color.withOpacity(0.15), AppColors.cardBg],
+          colors: [color.withValues(alpha: 0.15), AppColors.cardBg],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: color.withOpacity(0.3)),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
       ),
       child: Row(
         children: [
@@ -176,7 +176,7 @@ class _ConsistencyCard extends StatelessWidget {
             width: 80,
             height: 80,
             decoration: BoxDecoration(
-              color: color.withOpacity(0.15),
+              color: color.withValues(alpha: 0.15),
               shape: BoxShape.circle,
             ),
             child: Center(
@@ -267,7 +267,7 @@ class _WeeklyCaloriesChart extends StatelessWidget {
           gridData: FlGridData(
             show: true,
             drawVerticalLine: false,
-            getDrawingHorizontalLine: (_) => FlLine(
+            getDrawingHorizontalLine: (_) => const FlLine(
               color: AppColors.surfaceLight,
               strokeWidth: 1,
             ),
@@ -310,7 +310,7 @@ class _WeeklyCaloriesChart extends StatelessWidget {
               dotData: const FlDotData(show: true),
               belowBarData: BarAreaData(
                 show: true,
-                color: AppColors.primary.withOpacity(0.1),
+                color: AppColors.primary.withValues(alpha: 0.1),
               ),
             ),
           ],
@@ -371,7 +371,7 @@ class _WeightTrendChart extends StatelessWidget {
               dotData: const FlDotData(show: true),
               belowBarData: BarAreaData(
                 show: true,
-                color: AppColors.info.withOpacity(0.1),
+                color: AppColors.info.withValues(alpha: 0.1),
               ),
             ),
           ],
@@ -417,12 +417,12 @@ class _FlagGrid extends StatelessWidget {
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               color: f.active
-                  ? f.color.withOpacity(0.12)
+                  ? f.color.withValues(alpha: 0.12)
                   : AppColors.cardBg,
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
                   color:
-                      f.active ? f.color.withOpacity(0.4) : Colors.transparent),
+                      f.active ? f.color.withValues(alpha: 0.4) : Colors.transparent),
             ),
             child: Column(
               children: [
@@ -445,7 +445,7 @@ class _FlagGrid extends StatelessWidget {
                       const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                   decoration: BoxDecoration(
                     color: f.active
-                        ? f.color.withOpacity(0.2)
+                        ? f.color.withValues(alpha: 0.2)
                         : AppColors.surfaceLight,
                     borderRadius: BorderRadius.circular(6),
                   ),
@@ -581,7 +581,7 @@ class _MeasurementsProgressCard extends StatelessWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
               decoration: BoxDecoration(
-                color: color.withOpacity(0.15),
+                color: color.withValues(alpha: 0.15),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Text(
@@ -648,9 +648,9 @@ class _InsightTile extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.08),
+        color: color.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: color.withOpacity(0.25)),
+        border: Border.all(color: color.withValues(alpha: 0.25)),
       ),
       child: Row(
         children: [

@@ -113,18 +113,18 @@ class _FoodSearchScreenState extends ConsumerState<FoodSearchScreen> {
               error: (e, _) => Center(child: Text('Error: $e')),
               data: (foods) {
                 if (foods.isEmpty) {
-                  return Center(
+                  return const Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Text('🔍', style: TextStyle(fontSize: 48)),
-                        const SizedBox(height: 12),
+                        Text('🔍', style: TextStyle(fontSize: 48)),
+                        SizedBox(height: 12),
                         Text(
                           'No food found',
                           style: TextStyle(
                               color: AppColors.textSecondary, fontSize: 16),
                         ),
-                        const SizedBox(height: 8),
+                        SizedBox(height: 8),
                         Text(
                           'Try "roti", "chicken", or "daal"',
                           style: TextStyle(color: AppColors.textMuted),
@@ -159,7 +159,7 @@ class _FoodSearchScreenState extends ConsumerState<FoodSearchScreen> {
                         padding: const EdgeInsets.only(top: 24, bottom: 8, left: 4),
                         child: Text(
                           item.toUpperCase(),
-                          style: TextStyle(
+                          style: const TextStyle(
                             fontSize: 13,
                             fontWeight: FontWeight.bold,
                             letterSpacing: 1.2,
@@ -289,7 +289,7 @@ class _FoodTile extends StatelessWidget {
                           padding: const EdgeInsets.symmetric(
                               horizontal: 6, vertical: 2),
                           decoration: BoxDecoration(
-                              color: AppColors.accent.withOpacity(0.1),
+                              color: AppColors.accent.withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(4)),
                           child: Text(food.family!.toUpperCase(),
                               style: const TextStyle(

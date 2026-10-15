@@ -332,7 +332,7 @@ class _WeightStatCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.cardBg,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: color.withOpacity(0.2)),
+        border: Border.all(color: color.withValues(alpha: 0.2)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -340,7 +340,7 @@ class _WeightStatCard extends StatelessWidget {
           Text(icon, style: const TextStyle(fontSize: 24)),
           const SizedBox(height: 8),
           Text(value,
-              style: TextStyle(
+              style: const TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.w800,
                   color: AppColors.textPrimary)),
@@ -378,14 +378,14 @@ class _ProgressCard extends StatelessWidget {
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            AppColors.primary.withOpacity(0.15),
+            AppColors.primary.withValues(alpha: 0.15),
             AppColors.cardBg,
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.primary.withOpacity(0.2)),
+        border: Border.all(color: AppColors.primary.withValues(alpha: 0.2)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -497,7 +497,7 @@ class _WeightChart extends StatelessWidget {
               dotData: const FlDotData(show: true),
               belowBarData: BarAreaData(
                 show: true,
-                color: AppColors.info.withOpacity(0.1),
+                color: AppColors.info.withValues(alpha: 0.1),
               ),
             ),
           ],
@@ -653,11 +653,11 @@ class _WeightLogTile extends StatelessWidget {
 class _EmptyChartState extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 24),
+    return const Padding(
+      padding: EdgeInsets.symmetric(vertical: 24),
       child: Center(
         child: Column(
-          children: const [
+          children: [
             Text('⚖️', style: TextStyle(fontSize: 48)),
             SizedBox(height: 12),
             Text('Log weight for 2+ days to see trend',
